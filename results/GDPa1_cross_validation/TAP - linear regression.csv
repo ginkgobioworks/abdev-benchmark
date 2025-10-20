@@ -1,0 +1,6 @@
+spearman,top_10_recall,dataset,assay,model,spearman_abs
+0.29389546300987857,0.32999999999999996,GDPa1_cross_validation,AC-SINS_pH7.4,TAP - linear regression,0.29389546300987857
+0.22229914381720653,0.43,GDPa1_cross_validation,HIC,TAP - linear regression,0.22229914381720653
+0.1361352029115592,0.32999999999999996,GDPa1_cross_validation,PR_CHO,TAP - linear regression,0.1361352029115592
+-0.1153965363405958,0.64,GDPa1_cross_validation,Tm2,TAP - linear regression,0.1153965363405958
+0.11292102607012063,0.38,GDPa1_cross_validation,Titer,TAP - linear regression,0.11292102607012063
