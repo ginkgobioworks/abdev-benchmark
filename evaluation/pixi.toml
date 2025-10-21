@@ -1,0 +1,31 @@
+[workspace]
+name = "evaluation"
+version = "0.1.0"
+description = "Evaluation module for antibody developability benchmark"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64"]
+
+[dependencies]
+python = "3.11.*"
+numpy = ">=1.24"
+pandas = ">=2.0"
+scipy = ">=1.10"
+
+[pypi-dependencies]
+abdev-core = { path = "../libs/abdev_core", editable = true }
+evaluation = { path = ".", editable = true }
+
+[tasks]
+score = "python -m evaluation.cli score"
+validate = "python -m evaluation.cli validate"
+lint = "ruff check src && ruff format --check src"
+test = "pytest tests -v"
+
+[environments]
+default = []
+dev = ["dev"]
+
+[feature.dev.dependencies]
+pytest = ">=7.0"
+ruff = ">=0.1"
+
