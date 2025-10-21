@@ -1,0 +1,126 @@
+{
+  "_comment": "Configuration for regression testing of baselines",
+  "baseline_dir": "tests/baseline_results/predictions",
+  "new_dir": "predictions",
+  "default_tolerance": 1e-06,
+  "baselines": {
+    "tap_linear": {
+      "description": "Ridge regression on TAP features with cross-validation",
+      "output_dirs": {
+        "GDPa1_cross_validation": "tap_linear",
+        "heldout_test": "tap_linear"
+      },
+      "files": {
+        "GDPa1_cross_validation": [
+          "tap_linear.csv"
+        ],
+        "heldout_test": [
+          "tap_linear.csv"
+        ]
+      },
+      "tolerance": 1e-06,
+      "notes": "Trained model may have slight variations due to random initialization"
+    },
+    "tap_single_features": {
+      "description": "Individual TAP features mapped to properties",
+      "output_dirs": {
+        "GDPa1": "TAP",
+        "heldout_test": "TAP"
+      },
+      "files": {
+        "GDPa1": [
+          "TAP - CDR Length.csv",
+          "TAP - PNC.csv",
+          "TAP - PPC.csv",
+          "TAP - SFvCSP.csv"
+        ],
+        "heldout_test": [
+          "TAP - CDR Length.csv",
+          "TAP - PNC.csv",
+          "TAP - PPC.csv",
+          "TAP - SFvCSP.csv"
+        ]
+      },
+      "tolerance": 1e-06,
+      "notes": "Simple feature mappings - should be exact"
+    },
+    "aggrescan3d": {
+      "description": "Aggregation propensity predictions from structure",
+      "output_dirs": {
+        "GDPa1": "Aggrescan3D",
+        "heldout_test": "Aggrescan3D"
+      },
+      "files": {
+        "GDPa1": [
+          "Aggrescan3D - aggrescan_90_score.csv",
+          "Aggrescan3D - aggrescan_average_score.csv",
+          "Aggrescan3D - aggrescan_cdrh3_average_score.csv",
+          "Aggrescan3D - aggrescan_max_score.csv"
+        ],
+        "heldout_test": [
+          "Aggrescan3D - aggrescan_90_score.csv",
+          "Aggrescan3D - aggrescan_average_score.csv",
+          "Aggrescan3D - aggrescan_cdrh3_average_score.csv",
+          "Aggrescan3D - aggrescan_max_score.csv"
+        ]
+      },
+      "tolerance": 1e-06,
+      "notes": "Uses pre-computed Tamarind features"
+    },
+    "antifold": {
+      "description": "Antibody stability predictions",
+      "output_dirs": {
+        "GDPa1": "AntiFold"
+      },
+      "files": {
+        "GDPa1": [
+          "AntiFold.csv"
+        ]
+      },
+      "tolerance": 1e-06,
+      "notes": "Uses pre-computed Tamarind features"
+    },
+    "saprot_vh": {
+      "description": "Protein language model features",
+      "output_dirs": {
+        "GDPa1": "Saprot_VH"
+      },
+      "files": {
+        "GDPa1": [
+          "Saprot_VH - solubility_probability.csv",
+          "Saprot_VH - stability_score.csv"
+        ]
+      },
+      "tolerance": 1e-06,
+      "notes": "Uses pre-computed Tamarind features"
+    },
+    "deepviscosity": {
+      "description": "Viscosity predictions",
+      "output_dirs": {
+        "GDPa1": "DeepViscosity"
+      },
+      "files": {
+        "GDPa1": [
+          "DeepViscosity.csv"
+        ]
+      },
+      "tolerance": 1e-06,
+      "notes": "Uses pre-computed Tamarind features"
+    }
+  },
+  "datasets": {
+    "GDPa1": {
+      "description": "Main dataset with all properties measured",
+      "n_antibodies": 248
+    },
+    "GDPa1_cross_validation": {
+      "description": "Cross-validation split of GDPa1 (5 folds)",
+      "n_antibodies": 248
+    },
+    "heldout_test": {
+      "description": "Held-out test set (labels withheld)",
+      "n_antibodies": 62
+    }
+  }
+}
+
