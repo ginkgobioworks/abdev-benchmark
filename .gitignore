@@ -25,3 +25,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+
+# Baseline outputs
+baselines/**/outputs/
+runs/

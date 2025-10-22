@@ -29,29 +29,54 @@ cd abdev-benchmark
 
 ### Running a Baseline
 
-Each baseline can be run independently. For example, to run the TAP Linear baseline:
+Each baseline follows a standard train/predict workflow. For example, with TAP Linear:
 
 ```bash
 cd baselines/tap_linear
 pixi install
-pixi run predict
+
+# Train the model
+pixi run python -m tap_linear train \
+  --data ../../data/GDPa1_v1.2_20250814.csv \
+  --run-dir ./runs/my_run
+
+# Generate predictions
+pixi run python -m tap_linear predict \
+  --data ../../data/GDPa1_v1.2_20250814.csv \
+  --run-dir ./runs/my_run \
+  --out-dir ./outputs/train
+
+# Predict on heldout data
+pixi run python -m tap_linear predict \
+  --data ../../data/heldout-set-sequences.csv \
+  --run-dir ./runs/my_run \
+  --out-dir ./outputs/heldout
 ```
 
-This will generate predictions in `../../predictions/`.
+All baselines implement the same `BaseModel` interface with `train()` and `predict()` methods.
+
+**Note:** Models train on ALL provided data. The orchestrator handles data splitting for cross-validation.
 
 ### Running All Baselines
 
-To run all baselines sequentially:
+To train and run all baselines:
 
 ```bash
 ./run_all_baselines.sh
 ```
 
 This script will:
+- Automatically discover all baselines (directories with `pixi.toml` in `baselines/`)
 - Install dependencies for each baseline (if needed)
-- Run predictions for all 6 baselines
+- Train all models on the training data
+- Generate predictions for both training and heldout datasets
 - Display a summary of successes and failures
-- Save predictions to `predictions/`
+- Save model artifacts to `runs/` and predictions to `predictions/`
+
+Options:
+- `--skip-train`: Skip training step (use existing models)
+- `--run-dir DIR`: Specify custom directory for model artifacts
+- `--help`: Show usage information
 
 ### Evaluating Predictions
 
@@ -61,7 +86,7 @@ To evaluate predictions:
 cd evaluation
 pixi install
 pixi run score \
-  --pred ../predictions/GDPa1_cross_validation/tap_linear/tap_linear.csv \
+  --pred ../predictions/GDPa1_cross_validation/tap_linear/predictions.csv \
   --truth ../data/GDPa1_v1.2_20250814.csv \
   --dataset GDPa1_cross_validation
 ```
@@ -76,7 +101,8 @@ abdev-benchmark/
 │   ├── aggrescan3d/       # Aggregation propensity
 │   ├── antifold/          # Stability predictions
 │   ├── saprot_vh/         # Protein language model
-│   └── deepviscosity/     # Viscosity predictions
+│   ├── deepviscosity/     # Viscosity predictions
+│   └── random_predictor/  # Random baseline (performance floor)
 ├── evaluation/            # Standardized evaluation (Pixi project)
 ├── libs/
 │   └── abdev_core/       # Shared constants and utilities
@@ -104,8 +130,9 @@ abdev-benchmark/
 | **antifold** | Antibody stability predictions | No | Tamarind |
 | **saprot_vh** | Protein language model features | No | Tamarind |
 | **deepviscosity** | Viscosity predictions | No | Tamarind |
+| **random_predictor** | Random predictions (baseline floor) | No | None |
 
-See individual baseline READMEs for details.
+All baselines implement the `BaseModel` interface with standardized `train()` and `predict()` commands. See individual baseline READMEs for details.
 
 ## Predicted Properties
 
@@ -145,39 +172,131 @@ pixi run validate --pred path/to/predictions.csv
 
 ## Adding a New Baseline
 
-1. Create a new directory under `baselines/your_baseline/`
-2. Add `pixi.toml` with dependencies and tasks
-3. Create `src/your_baseline/predict.py` with prediction logic
-4. Add `README.md` documenting the approach
-5. Ensure predictions follow the standard format (see `data/schema/`)
+All baselines must implement the `BaseModel` interface with `train()` and `predict()` methods.
 
-Example `pixi.toml`:
-```toml
-[project]
-name = "your-baseline"
-channels = ["conda-forge"]
+### Steps
 
-[dependencies]
-python = "3.11.*"
-pandas = ">=2.0"
+1. **Create directory structure:**
+   ```bash
+   mkdir -p baselines/your_baseline/src/your_baseline
+   ```
 
-[pypi-dependencies]
-abdev-core = { path = "../../libs/abdev_core", editable = true }
+2. **Create `pixi.toml`** with dependencies:
+   ```toml
+   [workspace]
+   name = "your-baseline"
+   version = "0.1.0"
+   channels = ["conda-forge"]
+   platforms = ["linux-64", "osx-64", "osx-arm64"]
+   
+   [dependencies]
+   python = "3.11.*"
+   pandas = ">=2.0"
+   typer = ">=0.9"
+   
+   [pypi-dependencies]
+   abdev-core = { path = "../../libs/abdev_core", editable = true }
+   your-baseline = { path = ".", editable = true }
+   
+   [environments]
+   default = []
+   dev = ["dev"]
+   
+   [feature.dev.dependencies]
+   pytest = ">=7.0"
+   ruff = ">=0.1"
+   
+   [feature.dev.tasks]
+   lint = "ruff check src && ruff format --check src"
+   test = "pytest tests -v"
+   ```
 
-[tasks]
-predict = "python -m your_baseline.predict"
-lint = "ruff check src"
-test = "pytest tests -v"
-```
+3. **Create `pyproject.toml`** for package metadata.
+
+4. **Implement `src/your_baseline/model.py`:**
+   ```python
+   from pathlib import Path
+   import pandas as pd
+   from abdev_core import BaseModel
+   
+   class YourModel(BaseModel):
+       def train(self, df: pd.DataFrame, run_dir: Path, *, seed: int = 42) -> None:
+           """Train model on ALL provided data and save artifacts to run_dir."""
+           # Train on ALL samples in df (no internal CV)
+           # Your training logic here
+           pass
+       
+       def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
+           """Generate predictions for ALL provided samples."""
+           # Predict on ALL samples in df
+           # Your prediction logic here
+           pass
+   ```
+
+5. **Create `src/your_baseline/run.py`:**
+   ```python
+   from abdev_core import create_cli_app
+   from .model import YourModel
+   
+   app = create_cli_app(YourModel, "Your Model")
+   
+   if __name__ == "__main__":
+       app()
+   ```
+
+6. **Create `src/your_baseline/__main__.py`:**
+   ```python
+   from .run import app
+   if __name__ == "__main__":
+       app()
+   ```
+
+7. **Add `README.md`** documenting your approach.
+
+8. **Test your baseline:**
+   ```bash
+   # From repository root
+   python tests/test_baseline_contract.py --baseline your_baseline
+   
+   # Or test train/predict manually
+   cd baselines/your_baseline
+   pixi install
+   pixi run python -m your_baseline train --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./test_run
+   pixi run python -m your_baseline predict --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./test_run --out-dir ./test_out
+   ```
+
+See `baselines/random_predictor/` for a complete minimal example.
 
 ## Development
 
-### Running Tests
+### Testing Baseline Contract Compliance
 
-Each project has its own tests:
+Validate that all baselines implement the train/predict contract correctly:
+
+```bash
+# Test all baselines
+python tests/test_baseline_contract.py
+
+# Test a specific baseline
+python tests/test_baseline_contract.py --baseline tap_linear
+
+# Skip training step (faster, assumes models already trained)
+python tests/test_baseline_contract.py --skip-train
+```
+
+This test script validates:
+- Train command executes successfully and creates artifacts
+- Predict command works on both training and heldout data
+- Output predictions follow the required CSV format
+- All required columns are present
+
+### Running Unit Tests
+
+Each project has its own test suite:
 ```bash
 cd baselines/tap_linear
-pixi run test
+pixi install
+pixi run -e dev test  # Run in dev environment for test dependencies
 ```
 
 ### Regression Testing
@@ -191,7 +310,8 @@ python tests/test_regression.py
 
 ```bash
 cd baselines/tap_linear
-pixi run lint
+pixi install
+pixi run -e dev lint  # Run in dev environment for linting tools
 ```
 
 ## Citation

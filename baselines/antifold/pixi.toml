@@ -8,15 +8,11 @@ platforms = ["linux-64", "osx-64", "osx-arm64"]
 [dependencies]
 python = "3.11.*"
 pandas = ">=2.0"
+typer = ">=0.9"
 
 [pypi-dependencies]
 abdev-core = { path = "../../libs/abdev_core", editable = true }
 antifold = { path = ".", editable = true }
-
-[tasks]
-predict = "python -m antifold.predict"
-lint = "ruff check src && ruff format --check src"
-test = "pytest tests -v"
 
 [environments]
 default = []
@@ -25,4 +21,8 @@ dev = ["dev"]
 [feature.dev.dependencies]
 pytest = ">=7.0"
 ruff = ">=0.1"
+
+[feature.dev.tasks]
+lint = "ruff check src && ruff format --check src"
+test = "pytest tests -v"
 
