@@ -1,0 +1,6 @@
+spearman,top_10_recall,dataset,assay,model
+0.22229914381720653,0.29,GDPa1_cross_validation,HIC,tap_linear
+-0.1153965363405958,0.05,GDPa1_cross_validation,Tm2,tap_linear
+0.11292102607012063,0.04,GDPa1_cross_validation,Titer,tap_linear
+0.1361352029115592,0.1,GDPa1_cross_validation,PR_CHO,tap_linear
+0.29389546300987857,0.18,GDPa1_cross_validation,AC-SINS_pH7.4,tap_linear

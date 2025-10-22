@@ -1,0 +1,6 @@
+spearman,top_10_recall,dataset,assay,model
+0.0020086963425154764,0.1,GDPa1_cross_validation,HIC,random_predictor
+-0.0001713777530861327,0.15,GDPa1_cross_validation,Tm2,random_predictor
+0.0683481314435548,0.04,GDPa1_cross_validation,Titer,random_predictor
+-0.08081095253156421,0.1,GDPa1_cross_validation,PR_CHO,random_predictor
+-0.025777044078529997,0.04,GDPa1_cross_validation,AC-SINS_pH7.4,random_predictor

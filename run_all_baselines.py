@@ -1,0 +1,434 @@
+#!/usr/bin/env python3
+"""Orchestrate cross-validation training and evaluation for all baselines.
+
+This script performs:
+1. 5-fold cross-validation training on GDPa1
+2. Prediction generation for CV and heldout sets
+3. Evaluation metric computation
+
+The orchestrator handles all CV logic, while baselines implement simple
+train/predict interfaces.
+
+Usage:
+    pixi run run-all                    # Run with default config
+    pixi run run-all-skip-train         # Skip training
+    python run_all_baselines.py --help  # See all options
+    python run_all_baselines.py --config configs/custom.toml
+"""
+
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import pandas as pd
+import toml
+import typer
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+from abdev_core import FOLD_COL
+from abdev_core.utils import split_data_by_fold
+from evaluation.metrics import evaluate_model
+
+console = Console()
+app = typer.Typer(add_completion=False)
+
+
+def load_config(config_path: Path) -> Dict:
+    """Load configuration from TOML file."""
+    if not config_path.exists():
+        console.print(f"[red]Config file not found: {config_path}[/red]")
+        sys.exit(1)
+    return toml.load(config_path)
+
+
+def discover_baselines(baselines_dir: Path, include: List[str], exclude: List[str]) -> List[str]:
+    """Discover valid baselines based on include/exclude filters."""
+    all_baselines = []
+    for baseline_path in baselines_dir.iterdir():
+        if baseline_path.is_dir() and (baseline_path / "pixi.toml").exists():
+            all_baselines.append(baseline_path.name)
+    
+    # Apply filters
+    if include:
+        baselines = [b for b in all_baselines if b in include]
+    else:
+        baselines = all_baselines
+    
+    if exclude:
+        baselines = [b for b in baselines if b not in exclude]
+    
+    return sorted(baselines)
+
+
+def run_command(cmd: List[str], cwd: Path, capture: bool = True) -> tuple[bool, str]:
+    """Run a command and return success status and output."""
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=cwd,
+            check=True,
+            capture_output=capture,
+            text=True
+        )
+        return True, result.stdout if capture else ""
+    except subprocess.CalledProcessError as e:
+        error_msg = f"{e.stdout}\n{e.stderr}" if capture else str(e)
+        return False, error_msg
+
+
+def merge_cv_predictions(
+    baseline_name: str,
+    train_data_path: Path,
+    pred_dir: Path,
+    num_folds: int,
+    verbose: bool = False
+) -> tuple[bool, Optional[Path]]:
+    """Merge cross-validation predictions from all folds.
+    
+    For each sample, keep the prediction from the fold that didn't train on it.
+    """
+    try:
+        df_truth = pd.read_csv(train_data_path)
+        
+        # Collect all fold predictions
+        fold_preds = []
+        for fold in range(num_folds):
+            pred_file = pred_dir / f".tmp_cv/{baseline_name}/fold_{fold}/predictions.csv"
+            if not pred_file.exists():
+                if verbose:
+                    console.print(f"[yellow]Warning: Missing prediction file: {pred_file}[/yellow]")
+                return False, None
+            
+            df_pred = pd.read_csv(pred_file)
+            df_pred['_fold'] = fold
+            fold_preds.append(df_pred)
+        
+        # Merge and filter to out-of-fold predictions only
+        df_all_preds = pd.concat(fold_preds, ignore_index=True)
+        df_merged = df_truth[['antibody_name', FOLD_COL]].merge(
+            df_all_preds, on='antibody_name', how='left'
+        )
+        df_cv = df_merged[df_merged[FOLD_COL] == df_merged['_fold']].copy()
+        df_cv = df_cv.drop(columns=['_fold'])
+        
+        # Save merged predictions
+        output_file = pred_dir / f"GDPa1_cross_validation/{baseline_name}/predictions.csv"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        df_cv.to_csv(output_file, index=False)
+        
+        return True, output_file
+    except Exception as e:
+        if verbose:
+            console.print(f"[red]Error merging predictions: {e}[/red]")
+        return False, None
+
+
+@app.command()
+def main(
+    config: Path = typer.Option(
+        Path("configs/default.toml"),
+        "--config", "-c",
+        help="Path to configuration file"
+    ),
+    skip_train: Optional[bool] = typer.Option(
+        None, "--skip-train",
+        help="Skip training (overrides config)"
+    ),
+    skip_eval: Optional[bool] = typer.Option(
+        None, "--skip-eval",
+        help="Skip evaluation (overrides config)"
+    ),
+    verbose: Optional[bool] = typer.Option(
+        None, "--verbose", "-v",
+        help="Show detailed output (overrides config)"
+    ),
+    run_dir: Optional[Path] = typer.Option(
+        None, "--run-dir",
+        help="Directory for model artifacts (overrides config)"
+    ),
+):
+    """Run all baselines with cross-validation and evaluation."""
+    
+    # Load and merge config with CLI overrides
+    script_dir = Path(__file__).parent
+    cfg = load_config(script_dir / config)
+    
+    # Override config with CLI arguments
+    if skip_train is not None:
+        cfg['execution']['skip_train'] = skip_train
+    if skip_eval is not None:
+        cfg['execution']['skip_eval'] = skip_eval
+    if verbose is not None:
+        cfg['execution']['verbose'] = verbose
+    if run_dir is not None:
+        cfg['paths']['run_dir'] = str(run_dir)
+    
+    # Setup paths (all relative to script_dir)
+    baselines_dir = script_dir / cfg['baselines']['baselines_dir']
+    train_data = script_dir / cfg['data']['train_file']
+    heldout_data = script_dir / cfg['data']['heldout_file']
+    run_dir = script_dir / cfg['paths']['run_dir']
+    pred_dir = script_dir / cfg['paths']['predictions_dir']
+    eval_dir = script_dir / cfg['paths']['evaluation_dir']
+    temp_dir = script_dir / cfg['paths']['temp_dir']
+    
+    # Create directories
+    for directory in [run_dir, pred_dir, eval_dir, temp_dir]:
+        directory.mkdir(parents=True, exist_ok=True)
+    
+    # Discover baselines
+    baselines = discover_baselines(
+        baselines_dir,
+        cfg['baselines'].get('include', []),
+        cfg['baselines'].get('exclude', [])
+    )
+    
+    if not baselines:
+        console.print("[red]No baselines found![/red]")
+        sys.exit(1)
+    
+    # Print header
+    mode_desc = []
+    if not cfg['execution']['skip_train']:
+        mode_desc.append("Train")
+    mode_desc.append("Predict")
+    if not cfg['execution']['skip_eval']:
+        mode_desc.append("Eval")
+    
+    console.print(Panel.fit(
+        f"[bold cyan]Running All Baselines[/bold cyan]\n\n"
+        f"Config: {config}\n"
+        f"Mode: {' + '.join(mode_desc)}\n"
+        f"Baselines: {len(baselines)} discovered\n"
+        f"  {', '.join(baselines)}\n\n"
+        f"Run directory: {run_dir}",
+        border_style="cyan"
+    ))
+    
+    # Track results
+    results = {
+        'success': [],
+        'failed_train': [],
+        'failed_predict': [],
+        'failed_eval': []
+    }
+    
+    num_folds = cfg['cross_validation']['num_folds']
+    seed = cfg['cross_validation']['seed']
+    verbose = cfg['execution']['verbose']
+    
+    # Process each baseline
+    for baseline_idx, baseline in enumerate(baselines, 1):
+        console.rule(f"[bold cyan][{baseline_idx}/{len(baselines)}] {baseline}[/bold cyan]")
+        
+        baseline_dir = baselines_dir / baseline
+        baseline_module = baseline.replace('-', '_')
+        baseline_failed = False
+        
+        # Install dependencies
+        console.print("  [dim]Installing dependencies...[/dim]")
+        success, _ = run_command(["pixi", "install"], baseline_dir, capture=not verbose)
+        if not success:
+            console.print("  [red]✗ Failed to install dependencies[/red]")
+            results['failed_train'].append(baseline)
+            continue
+        if verbose:
+            console.print("  [green]✓ Dependencies installed[/green]")
+        
+        # ===== CROSS-VALIDATION =====
+        console.print(f"  [yellow]Cross-Validation ({num_folds}-fold)[/yellow]")
+        
+        for fold in range(num_folds):
+            if verbose:
+                console.print(f"    Fold {fold}:")
+            
+            # Train on folds != current
+            if not cfg['execution']['skip_train']:
+                # Split data
+                fold_train_data = temp_dir / f"{baseline}_fold{fold}_train.csv"
+                try:
+                    split_data_by_fold(train_data, fold, fold_train_data)
+                except Exception as e:
+                    console.print(f"    [red]✗ Failed to split data for fold {fold}: {e}[/red]")
+                    baseline_failed = True
+                    break
+                
+                # Train model
+                fold_run_dir = run_dir / baseline / f"fold_{fold}"
+                cmd = [
+                    "pixi", "run", "python", "-m", baseline_module, "train",
+                    "--data", str(fold_train_data),
+                    "--run-dir", str(fold_run_dir),
+                    "--seed", str(seed)
+                ]
+                success, output = run_command(cmd, baseline_dir, capture=not verbose)
+                
+                if not success:
+                    console.print(f"    [red]✗ Training failed on fold {fold}[/red]")
+                    if verbose:
+                        console.print(f"    [dim]{output}[/dim]")
+                    baseline_failed = True
+                    break
+            
+            # Predict on all data
+            fold_run_dir = run_dir / baseline / f"fold_{fold}"
+            fold_pred_dir = pred_dir / f".tmp_cv/{baseline}/fold_{fold}"
+            
+            cmd = [
+                "pixi", "run", "python", "-m", baseline_module, "predict",
+                "--data", str(train_data),
+                "--run-dir", str(fold_run_dir),
+                "--out-dir", str(fold_pred_dir)
+            ]
+            success, output = run_command(cmd, baseline_dir, capture=not verbose)
+            
+            if not success:
+                console.print(f"    [red]✗ Predictions failed on fold {fold}[/red]")
+                if verbose:
+                    console.print(f"    [dim]{output}[/dim]")
+                baseline_failed = True
+                break
+        
+        if baseline_failed:
+            results['failed_train'].append(baseline)
+            continue
+        
+        # Merge CV predictions
+        if verbose:
+            console.print("    Merging CV predictions...")
+        success, _ = merge_cv_predictions(baseline, train_data, pred_dir, num_folds, verbose)
+        if not success:
+            console.print("  [red]✗ Failed to merge CV predictions[/red]")
+            results['failed_predict'].append(baseline)
+            continue
+        
+        console.print("  [green]✓ Cross-validation complete[/green]")
+        
+        # ===== FULL MODEL + HELDOUT =====
+        console.print("  [yellow]Heldout Test Set[/yellow]")
+        
+        # Train on all data
+        if not cfg['execution']['skip_train']:
+            full_run_dir = run_dir / baseline / "full"
+            cmd = [
+                "pixi", "run", "python", "-m", baseline_module, "train",
+                "--data", str(train_data),
+                "--run-dir", str(full_run_dir),
+                "--seed", str(seed)
+            ]
+            success, output = run_command(cmd, baseline_dir, capture=not verbose)
+            
+            if not success:
+                console.print("  [red]✗ Full training failed[/red]")
+                if verbose:
+                    console.print(f"  [dim]{output}[/dim]")
+                results['failed_train'].append(baseline)
+                continue
+        
+        # Predict on heldout
+        full_run_dir = run_dir / baseline / "full"
+        heldout_pred_dir = pred_dir / f"heldout_test/{baseline}"
+        
+        cmd = [
+            "pixi", "run", "python", "-m", baseline_module, "predict",
+            "--data", str(heldout_data),
+            "--run-dir", str(full_run_dir),
+            "--out-dir", str(heldout_pred_dir)
+        ]
+        success, output = run_command(cmd, baseline_dir, capture=not verbose)
+        
+        if not success:
+            console.print("  [red]✗ Heldout predictions failed[/red]")
+            if verbose:
+                console.print(f"  [dim]{output}[/dim]")
+            results['failed_predict'].append(baseline)
+            continue
+        
+        console.print("  [green]✓ Heldout predictions complete[/green]")
+        
+        # ===== EVALUATION =====
+        if not cfg['execution']['skip_eval']:
+            console.print("  [yellow]Evaluation[/yellow]")
+            
+            cv_pred_file = pred_dir / f"GDPa1_cross_validation/{baseline}/predictions.csv"
+            cv_eval_output = eval_dir / f"{baseline}_cv.csv"
+            
+            try:
+                results_list = evaluate_model(
+                    cv_pred_file,
+                    train_data,
+                    baseline,
+                    cfg['evaluation']['cv_dataset_name']
+                )
+                df_results = pd.DataFrame(results_list)
+                df_results.to_csv(cv_eval_output, index=False)
+                console.print("  [green]✓ Evaluation complete[/green]")
+            except Exception as e:
+                console.print(f"  [red]✗ Evaluation failed: {e}[/red]")
+                results['failed_eval'].append(baseline)
+                continue
+        
+        results['success'].append(baseline)
+        console.print(f"[bold green]✓ {baseline} complete[/bold green]\n")
+    
+    # Cleanup
+    if verbose:
+        console.print("\n[dim]Cleaning up temporary files...[/dim]")
+    shutil.rmtree(temp_dir, ignore_errors=True)
+    shutil.rmtree(pred_dir / ".tmp_cv", ignore_errors=True)
+    
+    # ===== SUMMARY =====
+    console.print("\n")
+    console.rule("[bold cyan]SUMMARY[/bold cyan]")
+    
+    table = Table(show_header=True, header_style="bold cyan")
+    table.add_column("Stage", style="cyan", width=20)
+    table.add_column("Success", justify="right", style="green")
+    table.add_column("Failed", justify="right", style="red")
+    
+    total_baselines = len(baselines)
+    train_failed = len(results['failed_train'])
+    predict_failed = len(results['failed_predict'])
+    eval_failed = len(results['failed_eval'])
+    
+    if not cfg['execution']['skip_train']:
+        table.add_row("Training", str(total_baselines - train_failed), str(train_failed))
+    
+    table.add_row("Prediction", str(total_baselines - predict_failed), str(predict_failed))
+    
+    if not cfg['execution']['skip_eval']:
+        table.add_row("Evaluation", str(total_baselines - eval_failed), str(eval_failed))
+    
+    console.print(table)
+    
+    # List failures if any
+    if train_failed or predict_failed or eval_failed:
+        console.print("\n[bold red]Failed Baselines:[/bold red]")
+        for baseline in set(results['failed_train'] + results['failed_predict'] + results['failed_eval']):
+            console.print(f"  • {baseline}")
+    
+    # Output locations
+    console.print(f"\n[bold cyan]Output Locations:[/bold cyan]")
+    console.print(f"  Models:      {run_dir}")
+    console.print(f"  Predictions: {pred_dir}")
+    if not cfg['execution']['skip_eval']:
+        console.print(f"  Evaluations: {eval_dir}")
+    
+    # Final status
+    total_failed = len(set(results['failed_train'] + results['failed_predict'] + results['failed_eval']))
+    console.print()
+    if total_failed > 0:
+        console.print(f"[red]✗ {total_failed}/{total_baselines} baseline(s) failed[/red]")
+        sys.exit(1)
+    else:
+        console.print(f"[green]✓ All {total_baselines} baselines completed successfully![/green]")
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    app()
+

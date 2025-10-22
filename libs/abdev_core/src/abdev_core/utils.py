@@ -1,7 +1,10 @@
 """Utility functions for the antibody developability benchmark."""
 
+from pathlib import Path
 from typing import List
 import pandas as pd
+
+from .constants import FOLD_COL
 
 
 def get_indices(seq_with_gaps: str) -> List[int]:
@@ -99,4 +102,43 @@ def load_from_tamarind(
     if strip_feature_suffix:
         df.columns = [col.split(" - ")[0] for col in df.columns]
     return df
+
+
+def split_data_by_fold(
+    data_path: Path,
+    fold: int,
+    output_path: Path = None,
+) -> pd.DataFrame:
+    """Split training data by fold for cross-validation.
+    
+    This function creates a training split by excluding the specified fold.
+    The excluded fold can be used as validation data.
+    
+    Args:
+        data_path: Path to input CSV with fold assignments
+        fold: Fold number to hold out (0-4 for 5-fold CV)
+        output_path: Optional path to save the split data
+        
+    Returns:
+        DataFrame with training data (excluding the specified fold)
+        
+    Raises:
+        ValueError: If data doesn't contain fold column
+    """
+    # Read data
+    df = pd.read_csv(data_path)
+    
+    if FOLD_COL not in df.columns:
+        raise ValueError(f"Data must contain {FOLD_COL} column for cross-validation")
+    
+    # Filter out the specified fold (this creates the training split)
+    df_train = df[df[FOLD_COL] != fold].copy()
+    
+    # Save if output path provided
+    if output_path:
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        df_train.to_csv(output_path, index=False)
+    
+    return df_train
 

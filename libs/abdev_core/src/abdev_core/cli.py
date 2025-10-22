@@ -8,6 +8,7 @@ import pandas as pd
 from typing import Optional
 
 from .base import BaseModel
+from .utils import split_data_by_fold
 
 
 def create_cli_app(model_class: type[BaseModel], model_name: str) -> typer.Typer:
@@ -117,4 +118,40 @@ def validate_dir_path(path: Path, must_exist: bool = False) -> Path:
     if path.exists() and not path.is_dir():
         raise typer.BadParameter(f"Path exists but is not a directory: {path}")
     return path
+
+
+# Utilities CLI app
+utils_app = typer.Typer(add_completion=False, help="Utility commands for data processing")
+
+
+@utils_app.command(name="split-by-fold")
+def cli_split_by_fold(
+    data: Path = typer.Option(..., help="Path to input CSV with fold assignments"),
+    fold: int = typer.Option(..., help="Fold number to hold out (0-4 for 5-fold CV)"),
+    output: Path = typer.Option(..., help="Path to save the training split"),
+):
+    """Split training data by fold for cross-validation.
+    
+    Creates a training split by excluding the specified fold.
+    The excluded fold can be used as validation data.
+    
+    Example:
+        abdev-utils split-by-fold --data train.csv --fold 0 --output train_fold0.csv
+    """
+    try:
+        df_train = split_data_by_fold(data, fold, output)
+        typer.echo(f"✓ Fold {fold}: Created training split with {len(df_train)} samples")
+        typer.echo(f"  Saved to: {output}")
+    except Exception as e:
+        typer.echo(f"Error: {str(e)}", err=True)
+        raise typer.Exit(1)
+
+
+def main():
+    """Entry point for abdev-utils CLI."""
+    utils_app()
+
+
+if __name__ == "__main__":
+    main()
 
