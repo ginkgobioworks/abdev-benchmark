@@ -31,8 +31,8 @@ class TapLinearModel(BaseModel):
         """
         run_dir.mkdir(parents=True, exist_ok=True)
         
-        # Load TAP features from centralized feature store
-        tap_features = load_features("TAP", dataset="GDPa1")
+        # Load TAP features from centralized feature store (all datasets)
+        tap_features = load_features("TAP")
         
         # Merge features with data (reset index to join on antibody_name)
         df_merged = df.merge(tap_features.reset_index(), on="antibody_name", how="left")
@@ -70,16 +70,16 @@ class TapLinearModel(BaseModel):
         
         print(f"Saved {len(models)} models to {models_path}")
     
-    def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
+    def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
         """Generate predictions for ALL provided samples using trained models.
         
         Args:
             df: Input dataframe with sequences
             run_dir: Directory containing trained models
-            out_dir: Directory to write predictions.csv
+            
+        Returns:
+            DataFrame with predictions for each property
         """
-        out_dir.mkdir(parents=True, exist_ok=True)
-        
         # Load trained models
         models_path = run_dir / "models.pkl"
         if not models_path.exists():
@@ -88,9 +88,8 @@ class TapLinearModel(BaseModel):
         with open(models_path, "rb") as f:
             models = pickle.load(f)
         
-        # Load TAP features from centralized feature store
-        dataset = "GDPa1"
-        tap_features = load_features("TAP", dataset=dataset)
+        # Load TAP features from centralized feature store (all datasets)
+        tap_features = load_features("TAP")
         df_merged = df.merge(tap_features.reset_index(), on="antibody_name", how="left")
         
         # Generate predictions for each property
@@ -106,11 +105,7 @@ class TapLinearModel(BaseModel):
         df_output = df_merged[output_cols]
         
         print(f"Generated predictions for {len(df_output)} samples")
-        print(f"  Dataset: {dataset}")
         print(f"  Properties: {', '.join(models.keys())}")
         
-        # Write predictions
-        output_path = out_dir / "predictions.csv"
-        df_output.to_csv(output_path, index=False)
-        print(f"  Saved to: {output_path}")
+        return df_output
 

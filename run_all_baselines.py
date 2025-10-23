@@ -10,8 +10,8 @@ The orchestrator handles all CV logic, while baselines implement simple
 train/predict interfaces.
 
 Usage:
-    pixi run run-all                    # Run with default config
-    pixi run run-all-skip-train         # Skip training
+    pixi run all                    # Run with default config
+    pixi run all-skip-train         # Skip training
     python run_all_baselines.py --help  # See all options
     python run_all_baselines.py --config configs/custom.toml
 """
@@ -109,9 +109,19 @@ def merge_cv_predictions(
         
         # Merge and filter to out-of-fold predictions only
         df_all_preds = pd.concat(fold_preds, ignore_index=True)
-        df_merged = df_truth[['antibody_name', fold_col]].merge(
-            df_all_preds, on='antibody_name', how='left'
+        
+        # Extract only the fold column from truth data to avoid duplicate column issues
+        df_truth_folds = df_truth[['antibody_name', fold_col]].copy()
+        
+        # Merge predictions with fold assignments
+        # Drop fold_col from predictions if it exists to avoid _x and _y suffix issues
+        df_all_preds_clean = df_all_preds.drop(columns=[fold_col], errors='ignore')
+        
+        df_merged = df_truth_folds.merge(
+            df_all_preds_clean, on='antibody_name', how='left'
         )
+        
+        # Keep only out-of-fold predictions: where fold_col matches _fold
         df_cv = df_merged[df_merged[fold_col] == df_merged['_fold']].copy()
         df_cv = df_cv.drop(columns=['_fold'])
         
@@ -294,6 +304,7 @@ def main(
             # Predict on all data
             fold_run_dir = run_dir / baseline / f"fold_{fold}"
             fold_pred_dir = pred_dir / f".tmp_cv/{baseline}/fold_{fold}"
+            fold_pred_dir.mkdir(parents=True, exist_ok=True)
             
             cmd = [
                 "pixi", "run", "python", "-m", baseline_module, "predict",
@@ -309,6 +320,9 @@ def main(
                     console.print(f"    [dim]{output}[/dim]")
                 baseline_failed = True
                 break
+            
+            if verbose:
+                console.print(f"    [green]✓ Fold {fold} predictions saved[/green]")
         
         if baseline_failed:
             results['failed_train'].append(baseline)
@@ -349,6 +363,7 @@ def main(
         # Predict on test set
         full_run_dir = run_dir / baseline / "full"
         test_pred_dir = pred_dir / f"heldout_test/{baseline}"
+        test_pred_dir.mkdir(parents=True, exist_ok=True)
         
         cmd = [
             "pixi", "run", "python", "-m", baseline_module, "predict",
@@ -364,6 +379,9 @@ def main(
                 console.print(f"  [dim]{output}[/dim]")
             results['failed_predict'].append(baseline)
             continue
+        
+        if verbose:
+            console.print("  [green]✓ Test predictions saved[/green]")
         
         console.print("  [green]✓ Test predictions complete[/green]")
         

@@ -21,7 +21,6 @@ class SaprotVhModel(BaseModel):
     to predicted properties based on observed correlations.
     
     Features are loaded from the centralized feature store via abdev_core.
-    Note: Saprot_VH features are only available for GDPa1 dataset.
     """
     
     def train(self, df: pd.DataFrame, run_dir: Path, *, seed: int = 42) -> None:
@@ -40,7 +39,7 @@ class SaprotVhModel(BaseModel):
         config = {
             "model_type": "saprot_vh",
             "feature_mappings": FEATURE_MAPPINGS,
-            "note": "Non-training baseline using pre-computed Saprot_VH features (GDPa1 only)"
+            "note": "Non-training baseline using pre-computed Saprot_VH features"
         }
         
         config_path = run_dir / "config.json"
@@ -50,32 +49,27 @@ class SaprotVhModel(BaseModel):
         print(f"Saved configuration to {config_path}")
         print("Note: This is a non-training baseline using pre-computed features")
     
-    def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
+    def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
         """Generate predictions using Saprot_VH features.
         
         Args:
             df: Input dataframe with sequences
             run_dir: Directory containing configuration (not strictly needed)
-            out_dir: Directory to write predictions.csv
+            
+        Returns:
+            DataFrame with predictions for each property
         """
-        out_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Check if features are available for this dataset
-        dataset = "GDPa1"
+        # Load Saprot_VH features from centralized feature store (all datasets)
         try:
-            saprot_features = load_features("Saprot_VH", dataset=dataset)
+            saprot_features = load_features("Saprot_VH")
         except FileNotFoundError:
-            print(f"Warning: Saprot_VH features not available for {dataset}")
+            print("Warning: Saprot_VH features not available")
             print("Generating empty predictions...")
             
             # Return empty predictions
             output_cols = ["antibody_name", "vh_protein_sequence", "vl_protein_sequence"]
             df_output = df[output_cols].copy()
-            
-            output_path = out_dir / "predictions.csv"
-            df_output.to_csv(output_path, index=False)
-            print(f"  Saved to: {output_path}")
-            return
+            return df_output
         
         # Merge sequences with features
         df_merged = df.copy()
@@ -101,12 +95,8 @@ class SaprotVhModel(BaseModel):
         output_cols.extend(sorted(all_properties))
         df_output = df_merged[output_cols]
         
-        # Write predictions
-        output_path = out_dir / "predictions.csv"
-        df_output.to_csv(output_path, index=False)
-        
         print(f"Generated predictions for {len(df_output)} samples")
-        print(f"  Dataset: {dataset}")
         print(f"  Properties: {', '.join(sorted(all_properties))}")
-        print(f"  Saved to: {output_path}")
+        
+        return df_output
 

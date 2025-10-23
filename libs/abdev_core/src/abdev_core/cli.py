@@ -74,9 +74,13 @@ def create_cli_app(model_class: type[BaseModel], model_name: str) -> typer.Typer
         
         typer.echo(f"Generating predictions with {model_name}...")
         model = model_class()
-        model.predict(df, run_dir, out_dir)
+        df_predictions = model.predict(df, run_dir)
         
-        typer.echo(f"✓ Predictions saved to {out_dir / 'predictions.csv'}")
+        # Save predictions to output directory
+        output_path = out_dir / "predictions.csv"
+        df_predictions.to_csv(output_path, index=False)
+        
+        typer.echo(f"✓ Predictions saved to {output_path}")
     
     return app
 

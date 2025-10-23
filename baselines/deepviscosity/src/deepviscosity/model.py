@@ -20,7 +20,6 @@ class DeepViscosityModel(BaseModel):
     to predicted properties based on observed correlations.
     
     Features are loaded from the centralized feature store via abdev_core.
-    Note: DeepViscosity features are only available for GDPa1 dataset.
     """
     
     def train(self, df: pd.DataFrame, run_dir: Path, *, seed: int = 42) -> None:
@@ -39,7 +38,7 @@ class DeepViscosityModel(BaseModel):
         config = {
             "model_type": "deepviscosity",
             "feature_mappings": FEATURE_MAPPINGS,
-            "note": "Non-training baseline using pre-computed DeepViscosity features (GDPa1 only)"
+            "note": "Non-training baseline using pre-computed DeepViscosity features"
         }
         
         config_path = run_dir / "config.json"
@@ -49,32 +48,27 @@ class DeepViscosityModel(BaseModel):
         print(f"Saved configuration to {config_path}")
         print("Note: This is a non-training baseline using pre-computed features")
     
-    def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
+    def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
         """Generate predictions using DeepViscosity features.
         
         Args:
             df: Input dataframe with sequences
             run_dir: Directory containing configuration (not strictly needed)
-            out_dir: Directory to write predictions.csv
+            
+        Returns:
+            DataFrame with predictions for each property
         """
-        out_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Check if features are available for this dataset
-        dataset = "GDPa1"
+        # Load DeepViscosity features from centralized feature store (all datasets)
         try:
-            viscosity_features = load_features("DeepViscosity", dataset=dataset)
+            viscosity_features = load_features("DeepViscosity")
         except FileNotFoundError:
-            print(f"Warning: DeepViscosity features not available for {dataset}")
+            print("Warning: DeepViscosity features not available")
             print("Generating empty predictions...")
             
             # Return empty predictions
             output_cols = ["antibody_name", "vh_protein_sequence", "vl_protein_sequence"]
             df_output = df[output_cols].copy()
-            
-            output_path = out_dir / "predictions.csv"
-            df_output.to_csv(output_path, index=False)
-            print(f"  Saved to: {output_path}")
-            return
+            return df_output
         
         # Merge sequences with features
         df_merged = df.merge(
@@ -94,12 +88,8 @@ class DeepViscosityModel(BaseModel):
         output_cols.extend(all_properties)
         df_output = df_merged[output_cols]
         
-        # Write predictions
-        output_path = out_dir / "predictions.csv"
-        df_output.to_csv(output_path, index=False)
-        
         print(f"Generated predictions for {len(df_output)} samples")
-        print(f"  Dataset: {dataset}")
         print(f"  Properties: {', '.join(all_properties)}")
-        print(f"  Saved to: {output_path}")
+        
+        return df_output
 

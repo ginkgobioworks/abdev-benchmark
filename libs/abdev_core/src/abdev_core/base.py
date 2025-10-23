@@ -10,7 +10,7 @@ class BaseModel(ABC):
     
     Contract:
     - train() trains on ALL provided data and writes model artifacts to run_dir
-    - predict() reads model artifacts from run_dir and writes predictions.csv to out_dir
+    - predict() reads model artifacts from run_dir and returns a predictions DataFrame
     
     Important: Models should NOT implement cross-validation internally. The orchestrator
     is responsible for splitting data and calling train/predict multiple times if needed.
@@ -38,21 +38,23 @@ class BaseModel(ABC):
         ...
     
     @abstractmethod
-    def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
+    def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
         """Generate predictions for ALL provided samples using saved model artifacts.
         
         Args:
             df: Input dataframe with sequences (and any required features)
             run_dir: Directory containing saved model artifacts from train()
-            out_dir: Directory to write predictions.csv
+            
+        Returns:
+            DataFrame with prediction results containing columns:
+            ['antibody_name', 'vh_protein_sequence', 'vl_protein_sequence', ...]
+            where ... are predicted property columns
             
         Notes:
             - Must load model artifacts from run_dir
             - Predict on ALL samples in df
-            - Must write predictions.csv to out_dir with columns:
-              ['antibody_name', 'vh_protein_sequence', 'vl_protein_sequence', ...]
-              where ... are predicted property columns
-            - Must create out_dir if it doesn't exist
+            - Do NOT save predictions; return the DataFrame for orchestrator to handle
+            - The orchestrator is responsible for saving predictions to the appropriate location
         """
         ...
 

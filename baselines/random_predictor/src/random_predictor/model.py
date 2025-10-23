@@ -60,16 +60,16 @@ class RandomPredictorModel(BaseModel):
         for prop, ranges in property_ranges.items():
             print(f"  {prop}: [{ranges['min']:.3f}, {ranges['max']:.3f}]")
     
-    def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
+    def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
         """Generate random predictions using saved configuration.
         
         Args:
             df: Input dataframe with sequences
             run_dir: Directory containing configuration
-            out_dir: Directory to write predictions.csv
+            
+        Returns:
+            DataFrame with random predictions for each property
         """
-        out_dir.mkdir(parents=True, exist_ok=True)
-        
         # Load configuration
         config_path = run_dir / "config.json"
         if not config_path.exists():
@@ -100,12 +100,9 @@ class RandomPredictorModel(BaseModel):
                 size=n_samples
             )
         
-        # Write predictions
-        output_path = out_dir / "predictions.csv"
-        df_output.to_csv(output_path, index=False)
-        
         print(f"Generated random predictions for {len(df_output)} samples")
         print(f"  Seed: {seed}")
         print(f"  Properties: {', '.join(property_ranges.keys())}")
-        print(f"  Saved to: {output_path}")
+        
+        return df_output
 

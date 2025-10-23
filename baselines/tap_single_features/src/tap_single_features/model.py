@@ -53,19 +53,18 @@ class TapSingleFeaturesModel(BaseModel):
         print(f"Saved configuration to {config_path}")
         print("Note: This is a non-training baseline using pre-computed features")
     
-    def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
+    def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
         """Generate predictions using TAP single features.
         
         Args:
             df: Input dataframe with sequences
             run_dir: Directory containing configuration (not strictly needed)
-            out_dir: Directory to write predictions.csv
+            
+        Returns:
+            DataFrame with predictions for each property
         """
-        out_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Load TAP features from centralized feature store
-        dataset = "GDPa1"
-        tap_features = load_features("TAP", dataset=dataset)
+        # Load TAP features from centralized feature store (all datasets)
+        tap_features = load_features("TAP")
         
         # Merge sequences with features
         df_merged = df.copy()
@@ -94,12 +93,8 @@ class TapSingleFeaturesModel(BaseModel):
         output_cols.extend(sorted(all_properties))
         df_output = df_merged[output_cols]
         
-        # Write predictions
-        output_path = out_dir / "predictions.csv"
-        df_output.to_csv(output_path, index=False)
-        
         print(f"Generated predictions for {len(df_output)} samples")
-        print(f"  Dataset: {dataset}")
         print(f"  Properties: {', '.join(sorted(all_properties))}")
-        print(f"  Saved to: {output_path}")
+        
+        return df_output
 

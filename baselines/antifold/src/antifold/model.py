@@ -49,19 +49,18 @@ class AntifoldModel(BaseModel):
         print(f"Saved configuration to {config_path}")
         print("Note: This is a non-training baseline using pre-computed features")
     
-    def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
+    def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
         """Generate predictions using AntiFold features.
         
         Args:
             df: Input dataframe with sequences
             run_dir: Directory containing configuration (not strictly needed)
-            out_dir: Directory to write predictions.csv
+            
+        Returns:
+            DataFrame with predictions for each property
         """
-        out_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Load AntiFold features from centralized feature store
-        dataset = "GDPa1"
-        antifold_features = load_features("AntiFold", dataset=dataset)
+        # Load AntiFold features from centralized feature store (all datasets)
+        antifold_features = load_features("AntiFold")
         
         # Merge sequences with features
         df_merged = df.merge(
@@ -79,12 +78,8 @@ class AntifoldModel(BaseModel):
         output_cols.extend([assay for assay, _ in FEATURE_MAPPINGS["Score"]])
         df_output = df_merged[output_cols]
         
-        # Write predictions
-        output_path = out_dir / "predictions.csv"
-        df_output.to_csv(output_path, index=False)
-        
         print(f"Generated predictions for {len(df_output)} samples")
-        print(f"  Dataset: {dataset}")
         print(f"  Properties: {', '.join([assay for assay, _ in FEATURE_MAPPINGS['Score']])}")
-        print(f"  Saved to: {output_path}")
+        
+        return df_output
 

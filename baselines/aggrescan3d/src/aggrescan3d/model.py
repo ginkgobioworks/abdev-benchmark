@@ -52,19 +52,18 @@ class Aggrescan3dModel(BaseModel):
         print(f"Saved configuration to {config_path}")
         print("Note: This is a non-training baseline using pre-computed features")
     
-    def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
+    def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
         """Generate predictions using Aggrescan3D features.
         
         Args:
             df: Input dataframe with sequences
             run_dir: Directory containing configuration (not strictly needed)
-            out_dir: Directory to write predictions.csv
+            
+        Returns:
+            DataFrame with predictions for each property
         """
-        out_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Load Aggrescan3D features from centralized feature store
-        dataset = "GDPa1"
-        aggrescan_features = load_features("Aggrescan3D", dataset=dataset)
+        # Load Aggrescan3D features from centralized feature store (all datasets)
+        aggrescan_features = load_features("Aggrescan3D")
         
         # Generate predictions for all mapped features
         all_predictions = []
@@ -108,12 +107,8 @@ class Aggrescan3dModel(BaseModel):
                     df_output[assay_name] = df_pred[col_name]
                     break
         
-        # Write predictions
-        output_path = out_dir / "predictions.csv"
-        df_output.to_csv(output_path, index=False)
-        
         print(f"Generated predictions for {len(df_output)} samples")
-        print(f"  Dataset: {dataset}")
         print(f"  Properties: {', '.join(property_sources.keys())}")
-        print(f"  Saved to: {output_path}")
+        
+        return df_output
 
