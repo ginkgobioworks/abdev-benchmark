@@ -66,34 +66,41 @@ verbose = false
 
 ## Configuration Reference
 
+All configuration sections and their options:
+
 ### `[data]`
-- `train_file` - Path to training CSV (relative to repo root)
-- `heldout_file` - Path to heldout test CSV
+Data file paths (relative to repository root):
+- `train_file` - Training dataset CSV (default: `data/GDPa1_v1.2_20250814.csv`)
+- `test_file` - Heldout test set CSV (default: `data/heldout-set-sequences.csv`)
 
 ### `[cross_validation]`
+Cross-validation settings:
 - `num_folds` - Number of CV folds (default: 5)
 - `seed` - Random seed for reproducibility (default: 42)
+- `fold_col` - Column name for fold assignments (empty string = generate random folds)
 
 ### `[paths]`
-All paths are relative to repository root unless absolute:
-- `run_dir` - Model artifacts directory
-- `predictions_dir` - Prediction outputs directory
-- `evaluation_dir` - Evaluation results directory
-- `temp_dir` - Temporary files (auto-cleaned)
+Output directories (relative to repository root unless absolute):
+- `run_dir` - Model artifacts directory (default: `outputs/models`)
+- `predictions_dir` - Prediction outputs directory (default: `outputs/predictions`)
+- `evaluation_dir` - Evaluation results directory (default: `outputs/evaluation`)
+- `temp_dir` - Temporary files, auto-cleaned (default: `.tmp_cv_splits`)
 
 ### `[baselines]`
-- `baselines_dir` - Directory containing baselines
-- `include` - List of baseline names to run (empty = all)
-- `exclude` - List of baseline names to skip
+Baseline selection:
+- `baselines_dir` - Directory containing baselines (default: `baselines`)
+- `include` - List of baseline names to run (empty = discover all)
+- `exclude` - List of baseline names to skip (default: empty)
 
 ### `[execution]`
-- `skip_train` - Skip training, use existing models
-- `skip_eval` - Skip evaluation step
-- `verbose` - Show detailed output for debugging
+Execution control:
+- `skip_train` - Skip training step, use existing models (default: false)
+- `skip_eval` - Skip evaluation step (default: false)
+- `verbose` - Show detailed output for debugging (default: false)
 
 ### `[evaluation]`
-- `cv_dataset_name` - Dataset identifier for metrics
-- `per_fold_metrics` - Compute per-fold metrics (future feature)
+Evaluation settings:
+- `cv_dataset_name` - Dataset identifier for cross-validation metrics (default: `GDPa1_cross_validation`)
 
 ## CLI Overrides
 

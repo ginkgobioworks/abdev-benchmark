@@ -59,36 +59,32 @@ All baselines implement the same `BaseModel` interface with `train()` and `predi
 
 ### Running All Baselines
 
-To train and run all baselines:
+To train, predict, and evaluate all baselines:
 
 ```bash
-./run_all_baselines.sh
+pixi run all
 ```
 
-This script will:
+This orchestrator will:
 - Automatically discover all baselines (directories with `pixi.toml` in `baselines/`)
-- Install dependencies for each baseline (if needed)
-- Train all models on the training data
-- Generate predictions for both training and heldout datasets
-- Display a summary of successes and failures
-- Save model artifacts to `runs/` and predictions to `predictions/`
+- Install dependencies for each baseline
+- Train models with 5-fold cross-validation on GDPa1
+- Generate predictions for both CV and heldout test sets
+- Evaluate predictions and compute metrics (Spearman, Top 10% Recall)
+- Display summary tables with results
+- Save artifacts to `outputs/models/`, `outputs/predictions/`, `outputs/evaluation/`
 
 Options:
-- `--skip-train`: Skip training step (use existing models)
-- `--run-dir DIR`: Specify custom directory for model artifacts
-- `--help`: Show usage information
-
-### Evaluating Predictions
-
-To evaluate predictions:
-
 ```bash
-cd evaluation
-pixi install
-pixi run score \
-  --pred ../predictions/GDPa1_cross_validation/tap_linear/predictions.csv \
-  --truth ../data/GDPa1_v1.2_20250814.csv \
-  --dataset GDPa1_cross_validation
+pixi run all                    # Full workflow (train + predict + eval)
+pixi run all-skip-train         # Skip training (use existing models)
+pixi run all-skip-eval          # Skip evaluation step
+python run_all_baselines.py --help  # See all options
+```
+
+You can customize behavior via config files in `configs/`:
+```bash
+python run_all_baselines.py --config configs/custom.toml
 ```
 
 ## Repository Structure
@@ -103,21 +99,21 @@ abdev-benchmark/
 │   ├── saprot_vh/         # Protein language model
 │   ├── deepviscosity/     # Viscosity predictions
 │   └── random_predictor/  # Random baseline (performance floor)
-├── evaluation/            # Standardized evaluation (Pixi project)
 ├── libs/
-│   └── abdev_core/       # Shared constants and utilities
+│   └── abdev_core/       # Shared utilities, base classes, and evaluation
+├── configs/              # Configuration files for orchestrator
 ├── data/                 # Benchmark datasets
 │   ├── schema/          # I/O contracts and format specifications
 │   ├── GDPa1_v1.2_20250814.csv  # Main dataset
 │   └── heldout-set-sequences.csv # Test set (labels withheld)
-├── features/             # Pre-computed features
-│   └── processed_features/
-│       ├── GDPa1/       # Training features
-│       └── heldout_test/ # Test features
-├── predictions/          # Generated predictions (output)
-├── results/             # Evaluation results (output)
-└── tests/
-    └── baseline_results/ # Reference predictions for regression testing
+├── outputs/              # Generated outputs (models, predictions, evaluation)
+│   ├── models/          # Trained model artifacts
+│   ├── predictions/     # Generated predictions
+│   └── evaluation/      # Evaluation metrics
+├── tests/
+│   └── baseline_results/ # Reference predictions for validation
+├── run_all_baselines.py  # Main orchestrator script
+└── pixi.toml            # Root environment with orchestrator dependencies
 ```
 
 ## Available Baselines
@@ -162,13 +158,7 @@ Prediction CSVs must contain:
 
 See `data/schema/README.md` for detailed format specifications.
 
-### Validation
-
-Validate prediction format:
-```bash
-cd evaluation
-pixi run validate --pred path/to/predictions.csv
-```
+Prediction format validation is handled automatically by the orchestrator using `abdev_core.validate_prediction_format()`.
 
 ## Adding a New Baseline
 
@@ -290,28 +280,21 @@ This test script validates:
 - Output predictions follow the required CSV format
 - All required columns are present
 
-### Running Unit Tests
+### Running Tests
 
-Each project has its own test suite:
+The root environment includes pytest for testing:
+```bash
+pixi install
+pixi run test           # Run all tests
+pixi run test-contract  # Run baseline contract tests only
+```
+
+Individual baselines may have their own test suites:
 ```bash
 cd baselines/tap_linear
 pixi install
 pixi run -e dev test  # Run in dev environment for test dependencies
-```
-
-### Regression Testing
-
-Compare new predictions against baseline results:
-```bash
-python tests/test_regression.py
-```
-
-### Linting
-
-```bash
-cd baselines/tap_linear
-pixi install
-pixi run -e dev lint  # Run in dev environment for linting tools
+pixi run -e dev lint  # Lint code
 ```
 
 ## Citation
