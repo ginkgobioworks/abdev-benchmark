@@ -62,12 +62,8 @@ class Aggrescan3dModel(BaseModel):
         """
         out_dir.mkdir(parents=True, exist_ok=True)
         
-        # Detect dataset from the input data
-        # If it has fold column, it's GDPa1; otherwise it's heldout_test
-        from abdev_core import FOLD_COL
-        dataset = "GDPa1" if FOLD_COL in df.columns else "heldout_test"
-        
         # Load Aggrescan3D features from centralized feature store
+        dataset = "GDPa1"
         aggrescan_features = load_features("Aggrescan3D", dataset=dataset)
         
         # Generate predictions for all mapped features

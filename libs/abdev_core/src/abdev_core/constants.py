@@ -18,9 +18,6 @@ ASSAY_HIGHER_IS_BETTER = {
     "AC-SINS_pH7.4": False,
 }
 
-# Cross-validation fold column name
-FOLD_COL = "hierarchical_cluster_IgG_isotype_stratified_fold"
-
 # Dataset names
 DATASETS = ["GDPa1", "GDPa1_cross_validation", "heldout_test"]
 

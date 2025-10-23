@@ -1,10 +1,10 @@
 """Utility functions for the antibody developability benchmark."""
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 import pandas as pd
-
-from .constants import FOLD_COL
+import numpy as np
+from sklearn.model_selection import KFold
 
 
 def get_indices(seq_with_gaps: str) -> List[int]:
@@ -104,10 +104,43 @@ def load_from_tamarind(
     return df
 
 
+def assign_random_folds(
+    df: pd.DataFrame,
+    num_folds: int = 5,
+    seed: int = 42,
+    fold_col: str = "fold"
+) -> pd.DataFrame:
+    """Assign random fold indices to data using stratified K-Fold.
+    
+    Uses sklearn's KFold for reproducible random fold assignment.
+    
+    Args:
+        df: Input dataframe
+        num_folds: Number of folds to create
+        seed: Random seed for reproducibility
+        fold_col: Column name to store fold assignments
+        
+    Returns:
+        DataFrame with fold column added
+    """
+    df = df.copy()
+    kfold = KFold(n_splits=num_folds, shuffle=True, random_state=seed)
+    
+    # Initialize fold column
+    df[fold_col] = -1
+    
+    # Assign folds
+    for fold_idx, (_, test_indices) in enumerate(kfold.split(df)):
+        df.iloc[test_indices, df.columns.get_loc(fold_col)] = fold_idx
+    
+    return df
+
+
 def split_data_by_fold(
     data_path: Path,
     fold: int,
-    output_path: Path = None,
+    fold_col: str,
+    output_path: Optional[Path] = None,
 ) -> pd.DataFrame:
     """Split training data by fold for cross-validation.
     
@@ -116,7 +149,8 @@ def split_data_by_fold(
     
     Args:
         data_path: Path to input CSV with fold assignments
-        fold: Fold number to hold out (0-4 for 5-fold CV)
+        fold: Fold number to hold out (0-indexed)
+        fold_col: Column name containing fold assignments
         output_path: Optional path to save the split data
         
     Returns:
@@ -128,11 +162,11 @@ def split_data_by_fold(
     # Read data
     df = pd.read_csv(data_path)
     
-    if FOLD_COL not in df.columns:
-        raise ValueError(f"Data must contain {FOLD_COL} column for cross-validation")
+    if fold_col not in df.columns:
+        raise ValueError(f"Data must contain {fold_col} column for cross-validation")
     
     # Filter out the specified fold (this creates the training split)
-    df_train = df[df[FOLD_COL] != fold].copy()
+    df_train = df[df[fold_col] != fold].copy()
     
     # Save if output path provided
     if output_path:

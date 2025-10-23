@@ -355,10 +355,11 @@ packages:
 - pypi: ../../libs/abdev_core
   name: abdev-core
   version: 0.1.0
-  sha256: 160fbac739465a407a44b0896403ca9715cc0757dfbcfa4a3aa71d28d5cc2db5
+  sha256: 8c04f27615119f3279aa64da48b93f88e087317fb83ab8b9f59dfd5b874ff070
   requires_dist:
   - pandas>=2.0
   - typer>=0.9.0
+  - scikit-learn>=1.3.0
   requires_python: '>=3.11'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-hda65f42_8.conda

@@ -1,4 +1,4 @@
-"""Entry point for DeepViscosity baseline CLI."""
+"""Entry point for model CLI."""
 
 from .run import app
 

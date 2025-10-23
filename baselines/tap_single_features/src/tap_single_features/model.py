@@ -63,11 +63,8 @@ class TapSingleFeaturesModel(BaseModel):
         """
         out_dir.mkdir(parents=True, exist_ok=True)
         
-        # Detect dataset from the input data
-        from abdev_core import FOLD_COL
-        dataset = "GDPa1" if FOLD_COL in df.columns else "heldout_test"
-        
         # Load TAP features from centralized feature store
+        dataset = "GDPa1"
         tap_features = load_features("TAP", dataset=dataset)
         
         # Merge sequences with features

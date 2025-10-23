@@ -29,8 +29,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from abdev_core import FOLD_COL
-from abdev_core.utils import split_data_by_fold
+from abdev_core import assign_random_folds, split_data_by_fold
 from evaluation.metrics import evaluate_model
 
 console = Console()
@@ -85,6 +84,7 @@ def merge_cv_predictions(
     train_data_path: Path,
     pred_dir: Path,
     num_folds: int,
+    fold_col: str,
     verbose: bool = False
 ) -> tuple[bool, Optional[Path]]:
     """Merge cross-validation predictions from all folds.
@@ -109,10 +109,10 @@ def merge_cv_predictions(
         
         # Merge and filter to out-of-fold predictions only
         df_all_preds = pd.concat(fold_preds, ignore_index=True)
-        df_merged = df_truth[['antibody_name', FOLD_COL]].merge(
+        df_merged = df_truth[['antibody_name', fold_col]].merge(
             df_all_preds, on='antibody_name', how='left'
         )
-        df_cv = df_merged[df_merged[FOLD_COL] == df_merged['_fold']].copy()
+        df_cv = df_merged[df_merged[fold_col] == df_merged['_fold']].copy()
         df_cv = df_cv.drop(columns=['_fold'])
         
         # Save merged predictions
@@ -170,7 +170,7 @@ def main(
     # Setup paths (all relative to script_dir)
     baselines_dir = script_dir / cfg['baselines']['baselines_dir']
     train_data = script_dir / cfg['data']['train_file']
-    heldout_data = script_dir / cfg['data']['heldout_file']
+    test_data = script_dir / cfg['data']['test_file']
     run_dir = script_dir / cfg['paths']['run_dir']
     pred_dir = script_dir / cfg['paths']['predictions_dir']
     eval_dir = script_dir / cfg['paths']['evaluation_dir']
@@ -214,12 +214,29 @@ def main(
         'success': [],
         'failed_train': [],
         'failed_predict': [],
-        'failed_eval': []
+        'failed_eval': [],
+        'metrics': {}  # baseline -> metrics DataFrame
     }
     
     num_folds = cfg['cross_validation']['num_folds']
     seed = cfg['cross_validation']['seed']
+    fold_col = cfg['cross_validation']['fold_col']
     verbose = cfg['execution']['verbose']
+    
+    # Handle fold assignments
+    if fold_col == "":
+        # Generate random folds
+        if verbose:
+            console.print(f"[yellow]Generating random {num_folds}-fold splits...[/yellow]")
+        df_train = pd.read_csv(train_data)
+        fold_col = "fold"  # Use this name for generated folds
+        df_train = assign_random_folds(df_train, num_folds=num_folds, seed=seed, fold_col=fold_col)
+        # Save with fold assignments
+        train_data_with_folds = temp_dir / "train_with_folds.csv"
+        df_train.to_csv(train_data_with_folds, index=False)
+        train_data = train_data_with_folds
+        if verbose:
+            console.print(f"[green]✓ Random folds generated and saved to {train_data_with_folds}[/green]")
     
     # Process each baseline
     for baseline_idx, baseline in enumerate(baselines, 1):
@@ -251,7 +268,7 @@ def main(
                 # Split data
                 fold_train_data = temp_dir / f"{baseline}_fold{fold}_train.csv"
                 try:
-                    split_data_by_fold(train_data, fold, fold_train_data)
+                    split_data_by_fold(train_data, fold, fold_col, fold_train_data)
                 except Exception as e:
                     console.print(f"    [red]✗ Failed to split data for fold {fold}: {e}[/red]")
                     baseline_failed = True
@@ -300,7 +317,7 @@ def main(
         # Merge CV predictions
         if verbose:
             console.print("    Merging CV predictions...")
-        success, _ = merge_cv_predictions(baseline, train_data, pred_dir, num_folds, verbose)
+        success, _ = merge_cv_predictions(baseline, train_data, pred_dir, num_folds, fold_col, verbose)
         if not success:
             console.print("  [red]✗ Failed to merge CV predictions[/red]")
             results['failed_predict'].append(baseline)
@@ -308,8 +325,8 @@ def main(
         
         console.print("  [green]✓ Cross-validation complete[/green]")
         
-        # ===== FULL MODEL + HELDOUT =====
-        console.print("  [yellow]Heldout Test Set[/yellow]")
+        # ===== FULL MODEL + TEST SET =====
+        console.print("  [yellow]Test Set[/yellow]")
         
         # Train on all data
         if not cfg['execution']['skip_train']:
@@ -329,26 +346,26 @@ def main(
                 results['failed_train'].append(baseline)
                 continue
         
-        # Predict on heldout
+        # Predict on test set
         full_run_dir = run_dir / baseline / "full"
-        heldout_pred_dir = pred_dir / f"heldout_test/{baseline}"
+        test_pred_dir = pred_dir / f"heldout_test/{baseline}"
         
         cmd = [
             "pixi", "run", "python", "-m", baseline_module, "predict",
-            "--data", str(heldout_data),
+            "--data", str(test_data),
             "--run-dir", str(full_run_dir),
-            "--out-dir", str(heldout_pred_dir)
+            "--out-dir", str(test_pred_dir)
         ]
         success, output = run_command(cmd, baseline_dir, capture=not verbose)
         
         if not success:
-            console.print("  [red]✗ Heldout predictions failed[/red]")
+            console.print("  [red]✗ Test predictions failed[/red]")
             if verbose:
                 console.print(f"  [dim]{output}[/dim]")
             results['failed_predict'].append(baseline)
             continue
         
-        console.print("  [green]✓ Heldout predictions complete[/green]")
+        console.print("  [green]✓ Test predictions complete[/green]")
         
         # ===== EVALUATION =====
         if not cfg['execution']['skip_eval']:
@@ -362,10 +379,16 @@ def main(
                     cv_pred_file,
                     train_data,
                     baseline,
-                    cfg['evaluation']['cv_dataset_name']
+                    cfg['evaluation']['cv_dataset_name'],
+                    fold_col=fold_col,
+                    num_folds=num_folds
                 )
                 df_results = pd.DataFrame(results_list)
                 df_results.to_csv(cv_eval_output, index=False)
+                
+                # Store metrics for summary
+                results['metrics'][baseline] = df_results
+                
                 console.print("  [green]✓ Evaluation complete[/green]")
             except Exception as e:
                 console.print(f"  [red]✗ Evaluation failed: {e}[/red]")
@@ -410,6 +433,39 @@ def main(
         console.print("\n[bold red]Failed Baselines:[/bold red]")
         for baseline in set(results['failed_train'] + results['failed_predict'] + results['failed_eval']):
             console.print(f"  • {baseline}")
+    
+    # ===== METRICS SUMMARY =====
+    if not cfg['execution']['skip_eval'] and results['metrics']:
+        console.print("\n")
+        console.rule("[bold cyan]METRICS SUMMARY[/bold cyan]")
+        
+        # Aggregate metrics across all baselines
+        metrics_data = []
+        for baseline_name, df_metrics in results['metrics'].items():
+            # Average across properties
+            avg_spearman = df_metrics['spearman'].mean()
+            avg_top10_recall = df_metrics['top_10_recall'].mean()
+            
+            metrics_data.append({
+                'Baseline': baseline_name,
+                'Avg Spearman ρ': f"{avg_spearman:.3f}",
+                'Avg Top 10% Recall': f"{avg_top10_recall:.3f}",
+            })
+        
+        # Sort by average Spearman (descending)
+        metrics_data.sort(key=lambda x: float(x['Avg Spearman ρ']), reverse=True)
+        
+        # Create metrics table
+        metrics_table = Table(show_header=True, header_style="bold cyan")
+        metrics_table.add_column("Baseline", style="cyan")
+        metrics_table.add_column("Avg Spearman ρ", justify="right", style="green")
+        metrics_table.add_column("Avg Top 10% Recall", justify="right", style="yellow")
+        
+        for row in metrics_data:
+            metrics_table.add_row(row['Baseline'], row['Avg Spearman ρ'], row['Avg Top 10% Recall'])
+        
+        console.print(metrics_table)
+        console.print(f"\n[dim]Note: Metrics averaged across {len(df_metrics)} properties. See {eval_dir} for per-property results.[/dim]")
     
     # Output locations
     console.print(f"\n[bold cyan]Output Locations:[/bold cyan]")

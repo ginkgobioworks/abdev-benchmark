@@ -59,11 +59,8 @@ class DeepViscosityModel(BaseModel):
         """
         out_dir.mkdir(parents=True, exist_ok=True)
         
-        # Detect dataset from the input data
-        from abdev_core import FOLD_COL
-        dataset = "GDPa1" if FOLD_COL in df.columns else "heldout_test"
-        
         # Check if features are available for this dataset
+        dataset = "GDPa1"
         try:
             viscosity_features = load_features("DeepViscosity", dataset=dataset)
         except FileNotFoundError:

@@ -1,4 +1,4 @@
-"""Entry point for Aggrescan3D baseline CLI."""
+"""Entry point for model CLI."""
 
 from .run import app
 

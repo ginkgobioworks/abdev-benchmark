@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-from abdev_core import PROPERTY_LIST, ASSAY_HIGHER_IS_BETTER, FOLD_COL
+from abdev_core import PROPERTY_LIST, ASSAY_HIGHER_IS_BETTER
 
 
 def recall_at_k(y_true: np.ndarray, y_pred: np.ndarray, frac: float = 0.1) -> float:
@@ -69,6 +69,7 @@ def evaluate_cross_validation(
     target_series: pd.Series,
     folds_series: pd.Series,
     assay_col: str,
+    num_folds: int = 5,
 ) -> dict[str, float]:
     """Run evaluation in a cross-validation loop.
     
@@ -77,13 +78,15 @@ def evaluate_cross_validation(
         target_series: True values
         folds_series: Fold assignments
         assay_col: Name of the assay being evaluated
+        num_folds: Expected number of folds for validation
         
     Returns:
         Dictionary with mean evaluation metrics across folds
     """
     results_dict = defaultdict(list)
-    if folds_series.nunique() != 5:
-        raise ValueError(f"Expected 5 folds, got {folds_series.nunique()}")
+    actual_folds = folds_series.nunique()
+    if actual_folds != num_folds:
+        raise ValueError(f"Expected {num_folds} folds, got {actual_folds}")
     for fold in folds_series.unique():
         predictions_series_fold = predictions_series[folds_series == fold]
         target_series_fold = target_series[folds_series == fold]
@@ -102,6 +105,8 @@ def evaluate_model(
     target_path: Path,
     model_name: str,
     dataset_name: str = None,
+    fold_col: str = None,
+    num_folds: int = 5,
 ) -> list[dict]:
     """Evaluate a single model on all properties.
     
@@ -112,6 +117,8 @@ def evaluate_model(
         target_path: Path to ground truth CSV
         model_name: Name of the model
         dataset_name: Name of the dataset (e.g., "GDPa1", "GDPa1_cross_validation")
+        fold_col: Column name for fold assignments (required for cross-validation)
+        num_folds: Number of folds for validation (used in cross-validation)
         
     Returns:
         List of evaluation result dictionaries
@@ -120,8 +127,15 @@ def evaluate_model(
     target_df = pd.read_csv(target_path)
     properties_in_preds = [col for col in predictions_df.columns if col in PROPERTY_LIST]
     
+    # Determine which columns to include from target_df
+    target_cols = ["antibody_name"] + PROPERTY_LIST
+    if dataset_name == "GDPa1_cross_validation" and fold_col:
+        if fold_col not in target_df.columns:
+            raise ValueError(f"Fold column '{fold_col}' not found in target data")
+        target_cols.insert(1, fold_col)
+    
     df_merged = pd.merge(
-        target_df[["antibody_name", FOLD_COL] + PROPERTY_LIST],
+        target_df[target_cols],
         predictions_df[["antibody_name"] + properties_in_preds],
         on="antibody_name",
         how="left",
@@ -131,11 +145,14 @@ def evaluate_model(
     results_list = []
     for assay_col in properties_in_preds:
         if dataset_name == "GDPa1_cross_validation":
+            if not fold_col:
+                raise ValueError("fold_col is required for cross-validation evaluation")
             results = evaluate_cross_validation(
                 df_merged[assay_col + "_pred"],
                 df_merged[assay_col + "_true"],
-                df_merged[FOLD_COL],
+                df_merged[fold_col],
                 assay_col,
+                num_folds=num_folds,
             )
         else:
             results = evaluate(

@@ -59,11 +59,8 @@ class AntifoldModel(BaseModel):
         """
         out_dir.mkdir(parents=True, exist_ok=True)
         
-        # Detect dataset from the input data
-        from abdev_core import FOLD_COL
-        dataset = "GDPa1" if FOLD_COL in df.columns else "heldout_test"
-        
         # Load AntiFold features from centralized feature store
+        dataset = "GDPa1"
         antifold_features = load_features("AntiFold", dataset=dataset)
         
         # Merge sequences with features

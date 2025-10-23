@@ -1,4 +1,4 @@
-"""Entry point for AntiFold baseline CLI."""
+"""Entry point for model CLI."""
 
 from .run import app
 

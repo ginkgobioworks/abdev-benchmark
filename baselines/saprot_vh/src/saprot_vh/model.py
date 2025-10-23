@@ -60,11 +60,8 @@ class SaprotVhModel(BaseModel):
         """
         out_dir.mkdir(parents=True, exist_ok=True)
         
-        # Detect dataset from the input data
-        from abdev_core import FOLD_COL
-        dataset = "GDPa1" if FOLD_COL in df.columns else "heldout_test"
-        
         # Check if features are available for this dataset
+        dataset = "GDPa1"
         try:
             saprot_features = load_features("Saprot_VH", dataset=dataset)
         except FileNotFoundError:

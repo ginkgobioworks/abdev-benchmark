@@ -88,11 +88,8 @@ class TapLinearModel(BaseModel):
         with open(models_path, "rb") as f:
             models = pickle.load(f)
         
-        # Detect dataset from the input data (check if has fold column for GDPa1)
-        from abdev_core import FOLD_COL
-        dataset = "GDPa1" if FOLD_COL in df.columns else "heldout_test"
-        
         # Load TAP features from centralized feature store
+        dataset = "GDPa1"
         tap_features = load_features("TAP", dataset=dataset)
         df_merged = df.merge(tap_features.reset_index(), on="antibody_name", how="left")
         

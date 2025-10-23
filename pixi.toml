@@ -10,6 +10,7 @@ python = "3.11.*"
 numpy = ">=1.24"
 pandas = ">=2.0"
 scipy = ">=1.10"
+scikit-learn = ">=1.3"
 typer = ">=0.9"
 rich = ">=13.0"
 toml = ">=0.10"
@@ -20,9 +21,9 @@ evaluation = { path = "evaluation", editable = true }
 
 [tasks]
 # Main orchestration commands
-run-all = "python run_all_baselines.py"
-run-all-skip-train = "python run_all_baselines.py --skip-train"
-run-all-skip-eval = "python run_all_baselines.py --skip-eval"
+all = "python run_all_baselines.py"
+all-skip-train = "python run_all_baselines.py --skip-train"
+all-skip-eval = "python run_all_baselines.py --skip-eval"
 
 # Testing
 test = "pytest tests -v"
