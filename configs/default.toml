@@ -16,12 +16,14 @@ seed = 42
 fold_col = "hierarchical_cluster_IgG_isotype_stratified_fold"
 
 [paths]
+# Base output directory
+output_dir = "outputs"
 # Directory for model artifacts (trained models, weights, etc.)
-run_dir = "runs"
+run_dir = "outputs/models"
 # Directory for prediction outputs
-predictions_dir = "predictions"
+predictions_dir = "outputs/predictions"
 # Directory for evaluation results
-evaluation_dir = "evaluation_results"
+evaluation_dir = "outputs/evaluation"
 # Temporary directory for intermediate files (will be cleaned up)
 temp_dir = ".tmp_cv_splits"
 

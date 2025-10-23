@@ -59,7 +59,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.20.0-h65a100f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
-      - pypi: ./evaluation
       - pypi: ./libs/abdev_core
       osx-64:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/bzip2-1.0.8-h500dc9f_8.conda
@@ -106,7 +105,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.20.0-h65a100f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
-      - pypi: ./evaluation
       - pypi: ./libs/abdev_core
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/bzip2-1.0.8-hd037594_8.conda
@@ -154,7 +152,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.20.0-h65a100f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
-      - pypi: ./evaluation
       - pypi: ./libs/abdev_core
   dev:
     channels:
@@ -239,7 +236,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.2.14-pyhd8ed1ab_0.conda
-      - pypi: ./evaluation
       - pypi: ./libs/abdev_core
       osx-64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/asttokens-3.0.0-pyhd8ed1ab_1.conda
@@ -310,7 +306,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.2.14-pyhd8ed1ab_0.conda
-      - pypi: ./evaluation
       - pypi: ./libs/abdev_core
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/asttokens-3.0.0-pyhd8ed1ab_1.conda
@@ -382,7 +377,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.2.14-pyhd8ed1ab_0.conda
-      - pypi: ./evaluation
       - pypi: ./libs/abdev_core
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -503,17 +497,6 @@ packages:
   - pkg:pypi/decorator?source=hash-mapping
   size: 14129
   timestamp: 1740385067843
-- pypi: ./evaluation
-  name: evaluation
-  version: 0.1.0
-  sha256: 42ada2078055c1a138ef977e5b2168e656fbbe591a3093327bff2e18c9a36e0f
-  requires_dist:
-  - abdev-core
-  - pandas>=2.0
-  - numpy>=1.24
-  - scipy>=1.10
-  requires_python: '>=3.11'
-  editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/exceptiongroup-1.3.0-pyhd8ed1ab_0.conda
   sha256: ce61f4f99401a4bd455b89909153b40b9c823276aefcbb06f2044618696009ca
   md5: 72e42d28960d875c7654614f8b50939a

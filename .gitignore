@@ -28,5 +28,5 @@ Thumbs.db
 
 # Baseline outputs and artifacts
 baselines/**/outputs/
-runs/
 .tmp_cv_splits/
+outputs/models/

@@ -28,9 +28,9 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+import numpy as np
 
-from abdev_core import assign_random_folds, split_data_by_fold
-from evaluation.metrics import evaluate_model
+from abdev_core import assign_random_folds, split_data_by_fold, evaluate_model
 
 console = Console()
 app = typer.Typer(add_completion=False)
@@ -134,6 +134,64 @@ def merge_cv_predictions(
     except Exception as e:
         if verbose:
             console.print(f"[red]Error merging predictions: {e}[/red]")
+        return False, None
+
+
+def merge_cv_train_predictions(
+    baseline_name: str,
+    train_data_path: Path,
+    pred_dir: Path,
+    num_folds: int,
+    fold_col: str,
+    verbose: bool = False
+) -> tuple[bool, Optional[Path]]:
+    """Merge cross-validation train predictions from all folds.
+    
+    For each sample, keep the prediction from the folds that DID train on it.
+    """
+    try:
+        df_truth = pd.read_csv(train_data_path)
+        
+        # Collect all fold predictions
+        fold_preds = []
+        for fold in range(num_folds):
+            pred_file = pred_dir / f".tmp_cv/{baseline_name}/fold_{fold}/predictions.csv"
+            if not pred_file.exists():
+                if verbose:
+                    console.print(f"[yellow]Warning: Missing prediction file: {pred_file}[/yellow]")
+                return False, None
+            
+            df_pred = pd.read_csv(pred_file)
+            df_pred['_fold'] = fold
+            fold_preds.append(df_pred)
+        
+        # Merge and filter to in-fold predictions (training data for that fold)
+        df_all_preds = pd.concat(fold_preds, ignore_index=True)
+        
+        # Extract only the fold column from truth data to avoid duplicate column issues
+        df_truth_folds = df_truth[['antibody_name', fold_col]].copy()
+        
+        # Merge predictions with fold assignments
+        # Drop fold_col from predictions if it exists to avoid _x and _y suffix issues
+        df_all_preds_clean = df_all_preds.drop(columns=[fold_col], errors='ignore')
+        
+        df_merged = df_truth_folds.merge(
+            df_all_preds_clean, on='antibody_name', how='left'
+        )
+        
+        # Keep only in-fold predictions: where fold_col != _fold (trained on these samples)
+        df_train = df_merged[df_merged[fold_col] != df_merged['_fold']].copy()
+        df_train = df_train.drop(columns=['_fold'])
+        
+        # Save merged predictions
+        output_file = pred_dir / f".tmp_cv_train/{baseline_name}/predictions.csv"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        df_train.to_csv(output_file, index=False)
+        
+        return True, output_file
+    except Exception as e:
+        if verbose:
+            console.print(f"[red]Error merging train predictions: {e}[/red]")
         return False, None
 
 
@@ -328,12 +386,21 @@ def main(
             results['failed_train'].append(baseline)
             continue
         
-        # Merge CV predictions
+        # Merge CV predictions (test)
         if verbose:
-            console.print("    Merging CV predictions...")
-        success, _ = merge_cv_predictions(baseline, train_data, pred_dir, num_folds, fold_col, verbose)
+            console.print("    Merging CV test predictions...")
+        success, cv_test_file = merge_cv_predictions(baseline, train_data, pred_dir, num_folds, fold_col, verbose)
         if not success:
-            console.print("  [red]✗ Failed to merge CV predictions[/red]")
+            console.print("  [red]✗ Failed to merge CV test predictions[/red]")
+            results['failed_predict'].append(baseline)
+            continue
+        
+        # Merge CV predictions (train)
+        if verbose:
+            console.print("    Merging CV train predictions...")
+        success, cv_train_file = merge_cv_train_predictions(baseline, train_data, pred_dir, num_folds, fold_col, verbose)
+        if not success:
+            console.print("  [red]✗ Failed to merge CV train predictions[/red]")
             results['failed_predict'].append(baseline)
             continue
         
@@ -389,23 +456,45 @@ def main(
         if not cfg['execution']['skip_eval']:
             console.print("  [yellow]Evaluation[/yellow]")
             
-            cv_pred_file = pred_dir / f"GDPa1_cross_validation/{baseline}/predictions.csv"
+            cv_test_pred_file = pred_dir / f"GDPa1_cross_validation/{baseline}/predictions.csv"
+            cv_train_pred_file = pred_dir / f".tmp_cv_train/{baseline}/predictions.csv"
             cv_eval_output = eval_dir / f"{baseline}_cv.csv"
             
             try:
-                results_list = evaluate_model(
-                    cv_pred_file,
+                # Evaluate test predictions
+                if verbose:
+                    console.print("    Evaluating test predictions...")
+                test_results_list = evaluate_model(
+                    cv_test_pred_file,
                     train_data,
                     baseline,
                     cfg['evaluation']['cv_dataset_name'],
                     fold_col=fold_col,
-                    num_folds=num_folds
+                    num_folds=num_folds,
+                    split="test"
                 )
-                df_results = pd.DataFrame(results_list)
+                
+                # Evaluate train predictions
+                if verbose:
+                    console.print("    Evaluating train predictions...")
+                train_results_list = evaluate_model(
+                    cv_train_pred_file,
+                    train_data,
+                    baseline,
+                    cfg['evaluation']['cv_dataset_name'],
+                    fold_col=fold_col,
+                    num_folds=num_folds,
+                    split="train"
+                )
+                
+                # Combine results
+                all_results = test_results_list + train_results_list
+                df_results = pd.DataFrame(all_results)
                 df_results.to_csv(cv_eval_output, index=False)
                 
-                # Store metrics for summary
-                results['metrics'][baseline] = df_results
+                # Store metrics for summary (test split only)
+                df_test_results = df_results[df_results['split'] == 'test']
+                results['metrics'][baseline] = df_test_results
                 
                 console.print("  [green]✓ Evaluation complete[/green]")
             except Exception as e:
@@ -421,6 +510,7 @@ def main(
         console.print("\n[dim]Cleaning up temporary files...[/dim]")
     shutil.rmtree(temp_dir, ignore_errors=True)
     shutil.rmtree(pred_dir / ".tmp_cv", ignore_errors=True)
+    shutil.rmtree(pred_dir / ".tmp_cv_train", ignore_errors=True)
     
     # ===== SUMMARY =====
     console.print("\n")
@@ -457,33 +547,64 @@ def main(
         console.print("\n")
         console.rule("[bold cyan]METRICS SUMMARY[/bold cyan]")
         
-        # Aggregate metrics across all baselines
-        metrics_data = []
+        # Organize metrics by baseline, assay, and metric type
+        spearman_by_baseline = {}
+        recall_by_baseline = {}
+        all_assays = set()
+        
         for baseline_name, df_metrics in results['metrics'].items():
-            # Average across properties
-            avg_spearman = df_metrics['spearman'].mean()
-            avg_top10_recall = df_metrics['top_10_recall'].mean()
+            # Filter to "average" fold and "test" split for summary
+            df_summary = df_metrics[(df_metrics['fold'] == 'average') & (df_metrics['split'] == 'test')]
             
-            metrics_data.append({
-                'Baseline': baseline_name,
-                'Avg Spearman ρ': f"{avg_spearman:.3f}",
-                'Avg Top 10% Recall': f"{avg_top10_recall:.3f}",
-            })
+            if len(df_summary) > 0:
+                spearman_by_baseline[baseline_name] = {}
+                recall_by_baseline[baseline_name] = {}
+                
+                for _, row in df_summary.iterrows():
+                    assay = row['assay']
+                    all_assays.add(assay)
+                    spearman_by_baseline[baseline_name][assay] = f"{row['spearman']:.3f}"
+                    recall_by_baseline[baseline_name][assay] = f"{row['top_10_recall']:.3f}"
         
-        # Sort by average Spearman (descending)
-        metrics_data.sort(key=lambda x: float(x['Avg Spearman ρ']), reverse=True)
+        # Sort assays
+        sorted_assays = sorted(all_assays)
         
-        # Create metrics table
-        metrics_table = Table(show_header=True, header_style="bold cyan")
-        metrics_table.add_column("Baseline", style="cyan")
-        metrics_table.add_column("Avg Spearman ρ", justify="right", style="green")
-        metrics_table.add_column("Avg Top 10% Recall", justify="right", style="yellow")
+        # Sort baselines by average Spearman (descending)
+        sorted_baselines = sorted(
+            spearman_by_baseline.keys(),
+            key=lambda b: np.mean([float(spearman_by_baseline[b].get(a, "0")) for a in sorted_assays]),
+            reverse=True
+        )
         
-        for row in metrics_data:
-            metrics_table.add_row(row['Baseline'], row['Avg Spearman ρ'], row['Avg Top 10% Recall'])
+        # Create Spearman table
+        spearman_table = Table(show_header=True, header_style="bold cyan", title="Spearman ρ (Test, Average Fold)")
+        spearman_table.add_column("Baseline", style="cyan")
+        for assay in sorted_assays:
+            spearman_table.add_column(assay, justify="right", style="green")
         
-        console.print(metrics_table)
-        console.print(f"\n[dim]Note: Metrics averaged across {len(df_metrics)} properties. See {eval_dir} for per-property results.[/dim]")
+        for baseline in sorted_baselines:
+            row_data = [baseline]
+            for assay in sorted_assays:
+                row_data.append(spearman_by_baseline[baseline].get(assay, "—"))
+            spearman_table.add_row(*row_data)
+        
+        console.print(spearman_table)
+        
+        # Create Top 10% Recall table
+        console.print()
+        recall_table = Table(show_header=True, header_style="bold yellow", title="Top 10% Recall (Test, Average Fold)")
+        recall_table.add_column("Baseline", style="cyan")
+        for assay in sorted_assays:
+            recall_table.add_column(assay, justify="right", style="yellow")
+        
+        for baseline in sorted_baselines:
+            row_data = [baseline]
+            for assay in sorted_assays:
+                row_data.append(recall_by_baseline[baseline].get(assay, "—"))
+            recall_table.add_row(*row_data)
+        
+        console.print(recall_table)
+        console.print(f"\n[dim]Note: Using 'average' fold and 'test' split. See {eval_dir} for per-fold/per-property/per-split results.[/dim]")
     
     # Output locations
     console.print(f"\n[bold cyan]Output Locations:[/bold cyan]")

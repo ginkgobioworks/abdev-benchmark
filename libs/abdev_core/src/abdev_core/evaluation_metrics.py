@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-from abdev_core import PROPERTY_LIST, ASSAY_HIGHER_IS_BETTER
+from . import PROPERTY_LIST, ASSAY_HIGHER_IS_BETTER
 
 
 def recall_at_k(y_true: np.ndarray, y_pred: np.ndarray, frac: float = 0.1) -> float:
@@ -51,12 +51,17 @@ def evaluate(
     Returns:
         Dictionary with evaluation metrics
     """
+    # Filter out NaN values in either predictions or true values
+    mask = ~(predictions_series.isna() | target_series.isna())
+    predictions_clean = predictions_series[mask]
+    target_clean = target_series[mask]
+    
     results_dict = {
-        "spearman": spearmanr(predictions_series, target_series, nan_policy="omit").correlation
+        "spearman": spearmanr(predictions_clean, target_clean, nan_policy="omit").correlation
     }
     # Top 10% recall
-    y_true = target_series.values
-    y_pred = predictions_series.values
+    y_true = target_clean.values
+    y_pred = predictions_clean.values
     if not ASSAY_HIGHER_IS_BETTER[assay_col]:
         y_true = -1 * y_true
         y_pred = -1 * y_pred
@@ -70,7 +75,7 @@ def evaluate_cross_validation(
     folds_series: pd.Series,
     assay_col: str,
     num_folds: int = 5,
-) -> dict[str, float]:
+) -> list[dict[str, float]]:
     """Run evaluation in a cross-validation loop.
     
     Args:
@@ -81,23 +86,41 @@ def evaluate_cross_validation(
         num_folds: Expected number of folds for validation
         
     Returns:
-        Dictionary with mean evaluation metrics across folds
+        List of dictionaries with per-fold, aggregated, and averaged metrics
     """
-    results_dict = defaultdict(list)
+    results_list = []
+    per_fold_metrics = defaultdict(list)
+    
     actual_folds = folds_series.nunique()
     if actual_folds != num_folds:
         raise ValueError(f"Expected {num_folds} folds, got {actual_folds}")
-    for fold in folds_series.unique():
+    
+    # Per-fold metrics
+    for fold in sorted(folds_series.unique()):
         predictions_series_fold = predictions_series[folds_series == fold]
         target_series_fold = target_series[folds_series == fold]
         results = evaluate(predictions_series_fold, target_series_fold, assay_col)
-        # Update the results_dict with the results for this fold
+        results["fold"] = str(fold)
+        results_list.append(results)
+        
+        # Track for averaging
         for key, value in results.items():
-            results_dict[key].append(value)
-    # Calculate the mean of the results for each key
-    for key, values in results_dict.items():
-        results_dict[key] = np.mean(values)
-    return results_dict
+            if key != "fold":
+                per_fold_metrics[key].append(value)
+    
+    # Aggregated metrics (all folds as one dataset)
+    aggregated_results = evaluate(predictions_series, target_series, assay_col)
+    aggregated_results["fold"] = "aggregated"
+    results_list.append(aggregated_results)
+    
+    # Averaged metrics (mean of per-fold metrics)
+    averaged_results = {}
+    for key, values in per_fold_metrics.items():
+        averaged_results[key] = np.mean(values)
+    averaged_results["fold"] = "average"
+    results_list.append(averaged_results)
+    
+    return results_list
 
 
 def evaluate_model(
@@ -107,6 +130,7 @@ def evaluate_model(
     dataset_name: str = None,
     fold_col: str = None,
     num_folds: int = 5,
+    split: str = "test",
 ) -> list[dict]:
     """Evaluate a single model on all properties.
     
@@ -119,6 +143,7 @@ def evaluate_model(
         dataset_name: Name of the dataset (e.g., "GDPa1", "GDPa1_cross_validation")
         fold_col: Column name for fold assignments (required for cross-validation)
         num_folds: Number of folds for validation (used in cross-validation)
+        split: Either "train" or "test" to identify the data split
         
     Returns:
         List of evaluation result dictionaries
@@ -147,21 +172,31 @@ def evaluate_model(
         if dataset_name == "GDPa1_cross_validation":
             if not fold_col:
                 raise ValueError("fold_col is required for cross-validation evaluation")
-            results = evaluate_cross_validation(
+            # evaluate_cross_validation now returns a list of dicts (per-fold, aggregated, averaged)
+            results_per_fold = evaluate_cross_validation(
                 df_merged[assay_col + "_pred"],
                 df_merged[assay_col + "_true"],
                 df_merged[fold_col],
                 assay_col,
                 num_folds=num_folds,
             )
+            # Add metadata to each result
+            for results in results_per_fold:
+                results["dataset"] = dataset_name
+                results["assay"] = assay_col
+                results["model"] = model_name
+                results["split"] = split
+                results_list.append(results)
         else:
             results = evaluate(
                 df_merged[assay_col + "_pred"], df_merged[assay_col + "_true"], assay_col
             )
-        results["dataset"] = dataset_name
-        results["assay"] = assay_col
-        results["model"] = model_name
-        results_list.append(results)
+            results["dataset"] = dataset_name
+            results["assay"] = assay_col
+            results["model"] = model_name
+            results["fold"] = None
+            results["split"] = split
+            results_list.append(results)
 
     return results_list
 

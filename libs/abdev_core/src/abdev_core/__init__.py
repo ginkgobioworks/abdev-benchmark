@@ -22,6 +22,16 @@ from abdev_core.features import (
     FeatureLoader,
     load_features,
 )
+from abdev_core.evaluation_metrics import (
+    recall_at_k,
+    evaluate,
+    evaluate_cross_validation,
+    evaluate_model,
+)
+from abdev_core.evaluation_validate import (
+    validate_prediction_format,
+    validate_prediction_file,
+)
 
 __all__ = [
     "PROPERTY_LIST",
@@ -38,5 +48,11 @@ __all__ = [
     "validate_dir_path",
     "FeatureLoader",
     "load_features",
+    "recall_at_k",
+    "evaluate",
+    "evaluate_cross_validation",
+    "evaluate_model",
+    "validate_prediction_format",
+    "validate_prediction_file",
 ]
 

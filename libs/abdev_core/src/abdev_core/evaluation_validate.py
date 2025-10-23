@@ -3,7 +3,7 @@
 import pandas as pd
 from pathlib import Path
 
-from abdev_core import PROPERTY_LIST
+from . import PROPERTY_LIST
 
 
 def validate_prediction_format(pred_df: pd.DataFrame) -> tuple[bool, list[str]]:

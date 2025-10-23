@@ -31,7 +31,7 @@ To run notebooks with the new repository structure:
    - New: `from abdev_core import PROPERTY_LIST`
    
    - Old: `from evaluate import evaluate_model`
-   - New: `from evaluation.metrics import evaluate_model`
+   - New: `from abdev_core import evaluate_model`
 
 ### Available Notebooks
 

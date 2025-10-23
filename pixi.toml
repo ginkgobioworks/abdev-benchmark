@@ -17,7 +17,6 @@ toml = ">=0.10"
 
 [pypi-dependencies]
 abdev-core = { path = "libs/abdev_core", editable = true }
-evaluation = { path = "evaluation", editable = true }
 
 [tasks]
 # Main orchestration commands

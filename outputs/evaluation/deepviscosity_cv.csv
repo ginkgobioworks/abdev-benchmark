@@ -1,0 +1,15 @@
+spearman,top_10_recall,fold,dataset,assay,model,split
+0.18566253834358556,0.0,0,GDPa1_cross_validation,HIC,deepviscosity,test
+-0.12309466546648032,0.25,1,GDPa1_cross_validation,HIC,deepviscosity,test
+0.12518285209555124,0.0,2,GDPa1_cross_validation,HIC,deepviscosity,test
+0.5065439513001404,0.25,3,GDPa1_cross_validation,HIC,deepviscosity,test
+0.18504778144613143,0.0,4,GDPa1_cross_validation,HIC,deepviscosity,test
+0.18059398754127,0.08333333333333333,aggregated,GDPa1_cross_validation,HIC,deepviscosity,test
+0.17586849154378564,0.1,average,GDPa1_cross_validation,HIC,deepviscosity,test
+0.18566253834358556,0.0,0,GDPa1_cross_validation,HIC,deepviscosity,train
+-0.12309466546648032,0.21052631578947367,1,GDPa1_cross_validation,HIC,deepviscosity,train
+0.12518285209555124,0.0,2,GDPa1_cross_validation,HIC,deepviscosity,train
+0.5065439513001404,0.23529411764705882,3,GDPa1_cross_validation,HIC,deepviscosity,train
+0.18504778144613146,0.15789473684210525,4,GDPa1_cross_validation,HIC,deepviscosity,train
+0.18059398754127,0.16666666666666666,aggregated,GDPa1_cross_validation,HIC,deepviscosity,train
+0.17586849154378564,0.12074303405572755,average,GDPa1_cross_validation,HIC,deepviscosity,train
