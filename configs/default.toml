@@ -1,0 +1,53 @@
+# Default configuration for baseline orchestration
+# This file defines the standard cross-validation and evaluation workflow
+
+[data]
+# Training data with fold assignments
+train_file = "data/GDPa1_v1.2_20250814.csv"
+# Test set (sequences only, no labels)
+test_file = "data/heldout-set-sequences.csv"
+
+[cross_validation]
+# Number of folds for cross-validation
+num_folds = 5
+# Random seed for reproducibility
+seed = 42
+# Column name for fold assignments (empty string = generate random folds)
+fold_col = "hierarchical_cluster_IgG_isotype_stratified_fold"
+
+[paths]
+# Base output directory
+output_dir = "outputs"
+# Directory for model artifacts (trained models, weights, etc.)
+run_dir = "outputs/models"
+# Directory for prediction outputs
+predictions_dir = "outputs/predictions"
+# Directory for evaluation results
+evaluation_dir = "outputs/evaluation"
+# Temporary directory for intermediate files (will be cleaned up)
+temp_dir = ".tmp_cv_splits"
+
+[baselines]
+# Directory containing all baseline implementations
+baselines_dir = "baselines"
+# Optional: specify baselines to run (empty = discover all)
+# include = ["tap_linear", "random_predictor"]
+include = []
+# Optional: specify baselines to exclude
+exclude = []
+
+[execution]
+# Skip training step (use existing models)
+skip_train = false
+# Skip evaluation step
+skip_eval = false
+# Show detailed output for debugging
+verbose = false
+
+[evaluation]
+# Dataset name for cross-validation metrics
+cv_dataset_name = "GDPa1_cross_validation"
+# Compute per-fold metrics in addition to averages
+per_fold_metrics = false
+
+

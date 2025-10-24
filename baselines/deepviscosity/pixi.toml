@@ -1,0 +1,28 @@
+[workspace]
+name = "deepviscosity"
+version = "0.1.0"
+description = "DeepViscosity baseline - viscosity predictions"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64", "linux-64"]
+
+[dependencies]
+python = "3.11.*"
+pandas = ">=2.0"
+typer = ">=0.9"
+
+[pypi-dependencies]
+abdev-core = { path = "../../libs/abdev_core", editable = true }
+deepviscosity = { path = ".", editable = true }
+
+[environments]
+default = []
+dev = ["dev"]
+
+[feature.dev.dependencies]
+pytest = ">=7.0"
+ruff = ">=0.1"
+
+[feature.dev.tasks]
+lint = "ruff check src && ruff format --check src"
+test = "pytest tests -v"
+

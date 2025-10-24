@@ -1,0 +1,39 @@
+[workspace]
+name = "abdev-benchmark"
+version = "0.1.0"
+description = "Antibody Developability Benchmark - Main orchestration environment"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64"]
+
+[dependencies]
+python = "3.11.*"
+numpy = ">=1.24"
+pandas = ">=2.0"
+scipy = ">=1.10"
+scikit-learn = ">=1.3"
+typer = ">=0.9"
+rich = ">=13.0"
+toml = ">=0.10"
+
+[pypi-dependencies]
+abdev-core = { path = "libs/abdev_core", editable = true }
+
+[tasks]
+# Main orchestration commands
+all = "python run_all_baselines.py"
+all-skip-train = "python run_all_baselines.py --skip-train"
+all-skip-eval = "python run_all_baselines.py --skip-eval"
+
+# Testing
+test = "pytest tests -v"
+test-contract = "pytest tests/test_baseline_contract.py -v"
+
+[environments]
+default = []
+dev = ["dev"]
+
+[feature.dev.dependencies]
+pytest = ">=7.0"
+ruff = ">=0.1"
+ipython = ">=8.0"
+
