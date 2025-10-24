@@ -216,11 +216,16 @@ All baselines must implement the `BaseModel` interface with `train()` and `predi
            # Your training logic here
            pass
        
-       def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
-           """Generate predictions for ALL provided samples."""
+       def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
+           """Generate predictions for ALL provided samples.
+           
+           Returns:
+               DataFrame with predictions. Orchestrator handles saving to file.
+           """
            # Predict on ALL samples in df
            # Your prediction logic here
-           pass
+           # Return DataFrame (don't save to disk - orchestrator handles I/O)
+           return df_with_predictions
    ```
 
 5. **Create `src/your_baseline/run.py`:**

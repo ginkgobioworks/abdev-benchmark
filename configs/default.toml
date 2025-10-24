@@ -32,7 +32,7 @@ temp_dir = ".tmp_cv_splits"
 baselines_dir = "baselines"
 # Optional: specify baselines to run (empty = discover all)
 # include = ["tap_linear", "random_predictor"]
-include = []
+include = ["esm2_ridge"]
 # Optional: specify baselines to exclude
 exclude = []
 
