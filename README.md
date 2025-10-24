@@ -78,8 +78,6 @@ This orchestrator will:
 
 After running all baselines, you'll see a summary table like this:
 
-Here's the data reformatted as a markdown table:
-
 **Spearman ρ (Test, Average Fold)**
 
 | Baseline | AC-SINS_pH7.4 | HIC | PR_CHO | Titer | Tm2 |
