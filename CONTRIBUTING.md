@@ -17,11 +17,9 @@ Thank you for your interest in contributing! This guide will help you understand
    cd abdev-benchmark
    ```
 
-3. Test that Pixi works:
+3. Install root environment:
    ```bash
-   cd evaluation
    pixi install
-   pixi run validate --help
    ```
 
 ## Repository Structure
@@ -48,7 +46,7 @@ cd baselines/your_baseline
 ### 2. Create `pixi.toml`
 
 ```toml
-[project]
+[workspace]
 name = "your-baseline"
 version = "0.1.0"
 description = "Brief description of your baseline"
@@ -63,12 +61,8 @@ numpy = ">=1.24"
 
 [pypi-dependencies]
 abdev-core = { path = "../../libs/abdev_core", editable = true }
+your-baseline = { path = ".", editable = true }
 # Add other PyPI dependencies
-
-[tasks]
-predict = "python -m your_baseline.predict"
-lint = "ruff check src && ruff format --check src"
-test = "pytest tests -v"
 
 [feature.dev.dependencies]
 pytest = ">=7.0"

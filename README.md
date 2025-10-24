@@ -122,6 +122,8 @@ abdev-benchmark/
 |----------|-------------|--------------|-------------|
 | **tap_linear** | Ridge regression on TAP descriptors | Yes | TAP features |
 | **tap_single_features** | Individual TAP features as predictors | No | TAP features |
+| **esm2_ridge** | Ridge regression on ESM2 embeddings | Yes | Sequences (ESM2 model) |
+| **piggen** | Ridge regression on p-IgGen embeddings | Yes | Sequences (p-IgGen model) |
 | **aggrescan3d** | Aggregation propensity from structure | No | Tamarind |
 | **antifold** | Antibody stability predictions | No | Tamarind |
 | **saprot_vh** | Protein language model features | No | Tamarind |
@@ -187,18 +189,6 @@ All baselines must implement the `BaseModel` interface with `train()` and `predi
    [pypi-dependencies]
    abdev-core = { path = "../../libs/abdev_core", editable = true }
    your-baseline = { path = ".", editable = true }
-   
-   [environments]
-   default = []
-   dev = ["dev"]
-   
-   [feature.dev.dependencies]
-   pytest = ">=7.0"
-   ruff = ">=0.1"
-   
-   [feature.dev.tasks]
-   lint = "ruff check src && ruff format --check src"
-   test = "pytest tests -v"
    ```
 
 3. **Create `pyproject.toml`** for package metadata.

@@ -32,6 +32,9 @@ To run notebooks with the new repository structure:
    
    - Old: `from evaluate import evaluate_model`
    - New: `from abdev_core import evaluate_model`
+   
+   - Old: `from evaluation.metrics import evaluate`
+   - New: `from abdev_core import evaluate`
 
 ### Available Notebooks
 
@@ -41,18 +44,18 @@ To run notebooks with the new repository structure:
 
 When adding new notebooks:
 1. Use relative paths for data access: `../data/`, `../features/`, etc.
-2. Import from `abdev_core` for shared constants
-3. Import from `evaluation.metrics` for evaluation functions
-4. Document any additional dependencies needed
+2. Import from `abdev_core` for shared constants and evaluation functions
+3. Document any additional dependencies needed
 
 ### Setting Up Jupyter with Pixi
 
 To create a Pixi environment for notebooks, create `pixi.toml` in this directory:
 
 ```toml
-[project]
+[workspace]
 name = "abdev-notebooks"
 channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64"]
 
 [dependencies]
 python = "3.11.*"

@@ -107,9 +107,16 @@ antibody-002,0.145,0.467,0.801,0.256,14
 
 ## Validation
 
-Use the evaluation module to validate prediction format:
-```bash
-pixi run -C evaluation validate --pred path/to/predictions.csv
+Prediction format validation is handled automatically by the orchestrator using `abdev_core.validate_prediction_format()`.
+
+You can also validate predictions programmatically:
+```python
+from abdev_core import validate_prediction_file
+
+is_valid, errors = validate_prediction_file("path/to/predictions.csv")
+if not is_valid:
+    for error in errors:
+        print(f"Error: {error}")
 ```
 
 Validation checks:
