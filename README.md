@@ -74,6 +74,26 @@ This orchestrator will:
 - Display summary tables with results
 - Save artifacts to `outputs/models/`, `outputs/predictions/`, `outputs/evaluation/`
 
+### Example Output
+
+After running all baselines, you'll see a summary table like this:
+
+Here's the data reformatted as a markdown table:
+
+**Spearman ρ (Test, Average Fold)**
+
+| Baseline | AC-SINS_pH7.4 | HIC | PR_CHO | Titer | Tm2 |
+|---|---:|---:|---:|---:|---:|
+| esm2_ridge | 0.420 | 0.416 | 0.420 | 0.180 | -0.098 |
+| piggen | 0.388 | 0.346 | 0.424 | 0.238 | -0.119 |
+| tap_single_features | 0.327 | 0.231 | 0.074 | 0.126 | — |
+| tap_linear | 0.294 | 0.222 | 0.136 | 0.113 | -0.115 |
+| aggrescan3d | — | 0.404 | 0.112 | — | — |
+| saprot_vh | — | — | 0.289 | — | 0.162 |
+| antifold | — | — | — | 0.194 | 0.084 |
+| deepviscosity | — | 0.176 | — | — | — |
+| random_predictor | -0.026 | 0.002 | -0.081 | 0.068 | -0.000 |
+
 Options:
 ```bash
 pixi run all                    # Full workflow (train + predict + eval)
@@ -92,27 +112,15 @@ python run_all_baselines.py --config configs/custom.toml
 ```
 abdev-benchmark/
 ├── baselines/              # Baseline models (each is a Pixi project)
-│   ├── tap_linear/        # Ridge regression on TAP features
-│   ├── tap_single_features/ # Individual TAP features
-│   ├── aggrescan3d/       # Aggregation propensity
-│   ├── antifold/          # Stability predictions
-│   ├── saprot_vh/         # Protein language model
-│   ├── deepviscosity/     # Viscosity predictions
-│   └── random_predictor/  # Random baseline (performance floor)
+│   └── random_predictor/  # E.g. Random baseline (performance floor)
 ├── libs/
 │   └── abdev_core/       # Shared utilities, base classes, and evaluation
 ├── configs/              # Configuration files for orchestrator
-├── data/                 # Benchmark datasets
-│   ├── schema/          # I/O contracts and format specifications
-│   ├── GDPa1_v1.2_20250814.csv  # Main dataset
-│   └── heldout-set-sequences.csv # Test set (labels withheld)
+├── data/                 # Benchmark datasets and precomputed features
 ├── outputs/              # Generated outputs (models, predictions, evaluation)
 │   ├── models/          # Trained model artifacts
 │   ├── predictions/     # Generated predictions
 │   └── evaluation/      # Evaluation metrics
-├── tests/
-│   └── baseline_results/ # Reference predictions for validation
-├── run_all_baselines.py  # Main orchestrator script
 └── pixi.toml            # Root environment with orchestrator dependencies
 ```
 
