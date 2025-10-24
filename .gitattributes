@@ -1,4 +1,6 @@
 # Binary data
 *.pdb filter=lfs diff=lfs merge=lfs -text
 # Specific folders
-features/raw_features/**/*.csv filter=lfs diff=lfs merge=lfs -text
+data/features/raw_features/**/*.csv filter=lfs diff=lfs merge=lfs -text
+data/features/raw_features/**/* filter=lfs diff=lfs merge=lfs -text
+data/features/raw_features/** filter=lfs diff=lfs merge=lfs -text
