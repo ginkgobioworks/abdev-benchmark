@@ -265,14 +265,16 @@ See `baselines/random_predictor/` for a complete minimal example.
 Validate that all baselines implement the train/predict contract correctly:
 
 ```bash
+# Install dev environment dependencies (includes pytest)
+pixi install -e dev
+
 # Test all baselines
-python tests/test_baseline_contract.py
+pixi run -e dev test-contract
 
-# Test a specific baseline
-python tests/test_baseline_contract.py --baseline tap_linear
-
-# Skip training step (faster, assumes models already trained)
-python tests/test_baseline_contract.py --skip-train
+# Or run with options
+pixi run -e dev python tests/test_baseline_contract.py --baseline tap_linear  # Test specific baseline
+pixi run -e dev python tests/test_baseline_contract.py --skip-train           # Skip training step
+pixi run -e dev python tests/test_baseline_contract.py --help                 # See all options
 ```
 
 This test script validates:
@@ -281,22 +283,7 @@ This test script validates:
 - Output predictions follow the required CSV format
 - All required columns are present
 
-### Running Tests
-
-The root environment includes pytest for testing:
-```bash
-pixi install
-pixi run test           # Run all tests
-pixi run test-contract  # Run baseline contract tests only
-```
-
-Individual baselines may have their own test suites:
-```bash
-cd baselines/tap_linear
-pixi install
-pixi run -e dev test  # Run in dev environment for test dependencies
-pixi run -e dev lint  # Lint code
-```
+**Note:** The test script uses `pixi run` to activate each baseline's environment, matching how the orchestrator runs baselines.
 
 ## Citation
 
@@ -314,4 +301,6 @@ If you use this benchmark, please cite:
 
 ## License
 
-[License information to be added]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+**Note:** Datasets and individual baseline implementations may have their own licenses and terms of use. Please refer to the specific documentation in each baseline directory and the `data/` directory for details.

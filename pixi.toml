@@ -24,10 +24,6 @@ all = "python run_all_baselines.py"
 all-skip-train = "python run_all_baselines.py --skip-train"
 all-skip-eval = "python run_all_baselines.py --skip-eval"
 
-# Testing
-test = "pytest tests -v"
-test-contract = "pytest tests/test_baseline_contract.py -v"
-
 [environments]
 default = []
 dev = ["dev"]
@@ -36,4 +32,8 @@ dev = ["dev"]
 pytest = ">=7.0"
 ruff = ">=0.1"
 ipython = ">=8.0"
+
+[feature.dev.tasks]
+# Testing tasks (require dev environment)
+test-contract = "python tests/test_baseline_contract.py"
 
