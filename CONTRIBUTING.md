@@ -272,9 +272,8 @@ All predictions must follow the standard format (see `data/schema/README.md`):
 
 ## Code Standards
 
-### Style
+### Style Suggestions
 - Follow PEP 8
-- Use ruff for linting: `pixi run lint`
 - Type hints encouraged
 - Docstrings for public functions
 
@@ -283,7 +282,7 @@ All predictions must follow the standard format (see `data/schema/README.md`):
 - Inline comments for complex logic
 - Citation for external methods
 
-### Testing
+### Testing Suggestions
 - Add pytest tests in `tests/`
 - Compare against reference predictions if available
 - Test edge cases (missing values, etc.)
