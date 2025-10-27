@@ -315,15 +315,44 @@ When modifying the orchestration logic:
 
 ## Submitting Changes
 
+### Fork and Pull Request Workflow
+
+We use the standard GitHub fork and pull request workflow:
+
+1. **Fork the repository** to your GitHub account
+2. **Clone your fork** locally:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/abdev-benchmark.git
+   cd abdev-benchmark
+   ```
+3. **Create a feature branch** (not main):
+   ```bash
+   git checkout -b add-your-baseline-name
+   # or
+   git checkout -b fix-issue-description
+   ```
+4. **Make your changes** following the guidelines in this document
+5. **Commit your changes** with clear commit messages (see below)
+6. **Push to your fork**:
+   ```bash
+   git push origin add-your-baseline-name
+   ```
+7. **Open a Pull Request** from your fork's branch to our `main` branch
+8. **Address review feedback** - we appreciate your contribution and will attempt a timely review
+
 ### Pull Request Checklist
 
+Before submitting your PR, please ensure:
+
 - [ ] Code follows style guidelines
-- [ ] Documentation added/updated
-- [ ] Tests added/passing
-- [ ] CI pipeline passes
-- [ ] Lockfile committed (`pixi.lock`)
+- [ ] Documentation added/updated (README, docstrings, etc.)
+- [ ] Tests added/passing (`python tests/test_baseline_contract.py --baseline your_baseline`)
+- [ ] Lockfile committed (`pixi.lock`) for new baselines
 - [ ] README updated if needed
-- [ ] No breaking changes to shared components (or discussed)
+- [ ] No breaking changes to shared components (or discussed in PR description)
+- [ ] For new baselines: Added entry to main README's baseline table
+- [ ] For new baselines: Specified any external dependencies, data sources, and licensing
+- [ ] CI checks pass (if applicable)
 
 ### Commit Messages
 
@@ -334,7 +363,7 @@ Add XYZ baseline with feature engineering
 - Implement prediction module
 - Add documentation
 - Configure Pixi environment
-- Update CI matrix
+- Add tests and validation
 ```
 
 ## Getting Help

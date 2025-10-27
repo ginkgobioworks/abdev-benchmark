@@ -84,9 +84,9 @@ def test_baseline_train(baseline_name: str, baselines_dir: Path, data_path: Path
     
     print(f"  Training {baseline_name}...")
     
-    # Build command
+    # Build command (use pixi run to activate baseline's environment)
     cmd = [
-        "python", "-m", baseline_name.replace("-", "_"),
+        "pixi", "run", "python", "-m", baseline_name.replace("-", "_"),
         "train",
         "--data", str(data_path),
         "--run-dir", str(run_dir),
@@ -148,9 +148,9 @@ def test_baseline_predict(
     
     print(f"  Predicting on {dataset_name} data...")
     
-    # Build command
+    # Build command (use pixi run to activate baseline's environment)
     cmd = [
-        "python", "-m", baseline_name.replace("-", "_"),
+        "pixi", "run", "python", "-m", baseline_name.replace("-", "_"),
         "predict",
         "--data", str(data_path),
         "--run-dir", str(run_dir),
