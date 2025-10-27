@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing! This guide will help you understand the repository structure and how to add new baselines or improvements.
 
+In addition to this repo, feel free to reach out via slack in the [Bits in Bio](https://join.slack.com/t/bitsinbio/shared_invite/zt-3dqigle2b-e0dEkfPPzzWL055j_8N_eQ) community, specifically the channel `#competition-ginkgo-antibody-2025`.
+
 ## Getting Started
 
 ### Prerequisites
