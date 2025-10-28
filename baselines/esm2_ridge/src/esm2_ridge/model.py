@@ -1,5 +1,3 @@
-"""ESM2 Ridge baseline model implementation."""
-
 from pathlib import Path
 import pickle
 import numpy as np
@@ -17,18 +15,10 @@ class ESM2RidgeModel(BaseModel):
     This model trains separate Ridge regression models for each property
     using embeddings from the ESM2 protein language model.
     
-    ESM2 is a general protein language model trained on evolutionary data.
-    Unlike p-IgGen which processes paired sequences together, this baseline
-    embeds heavy (VH) and light (VL) chains separately, then concatenates
+    This baseline embeds heavy (VH) and light (VL) chains separately, then concatenates
     the embeddings to create a joint representation. This approach ensures
     no padding token contamination and allows the model to learn chain-specific
     features independently before combining them.
-    
-    Key differences from p-IgGen baseline:
-    - Separate encoding: VH and VL are processed in separate forward passes
-    - No batching: Each sequence is embedded individually to avoid padding
-    - Concatenation: VH and VL embeddings are concatenated along feature dimension
-    - General PLM: ESM2 is not antibody-specific, providing a general baseline
     """
     
     MODEL_NAME = "facebook/esm2_t6_8M_UR50D"
@@ -46,8 +36,6 @@ class ESM2RidgeModel(BaseModel):
             return
         
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print(f"Loading ESM2 model ({self.MODEL_NAME}) on device: {self.device}")
-        
         self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME)
         self.model = AutoModel.from_pretrained(self.MODEL_NAME).to(self.device)
         self.model.eval()  # Set to evaluation mode
@@ -122,12 +110,7 @@ class ESM2RidgeModel(BaseModel):
         n_sequences = len(vh_sequences)
         embeddings_list = []
         
-        print(f"Generating embeddings for {n_sequences} sequences...")
-        
-        for i, (vh_seq, vl_seq) in enumerate(zip(vh_sequences, vl_sequences)):
-            if (i + 1) % 50 == 0:
-                print(f"  Processed {i + 1}/{n_sequences} sequences")
-            
+        for _, (vh_seq, vl_seq) in enumerate(zip(vh_sequences, vl_sequences)):
             # Embed VH and VL separately
             vh_embedding = self._embed_sequence(vh_seq)
             vl_embedding = self._embed_sequence(vl_seq)
@@ -150,13 +133,10 @@ class ESM2RidgeModel(BaseModel):
         run_dir.mkdir(parents=True, exist_ok=True)
         
         # Generate embeddings for all training samples
-        print(f"Generating embeddings for {len(df)} training samples...")
         embeddings = self._generate_embeddings(
             df["vh_protein_sequence"].tolist(),
             df["vl_protein_sequence"].tolist(),
         )
-        
-        print(f"Generated embeddings with shape: {embeddings.shape}")
         
         # Train Ridge regression models for each property
         models = {}
@@ -182,8 +162,6 @@ class ESM2RidgeModel(BaseModel):
             model = Ridge(alpha=self.ALPHA, random_state=seed)
             model.fit(X, y)
             models[property_name] = model
-            
-            print(f"  Trained model for {property_name} on {len(df_property)} samples")
         
         # Save models and embeddings
         models_path = run_dir / "models.pkl"
@@ -192,9 +170,6 @@ class ESM2RidgeModel(BaseModel):
         
         embeddings_path = run_dir / "embeddings.npy"
         np.save(embeddings_path, embeddings)
-        
-        print(f"Saved {len(models)} models to {models_path}")
-        print(f"Saved embeddings to {embeddings_path}")
     
     def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
         """Generate predictions for all samples using trained models.
@@ -215,7 +190,6 @@ class ESM2RidgeModel(BaseModel):
             models = pickle.load(f)
         
         # Generate embeddings for input data
-        print(f"Generating embeddings for {len(df)} samples...")
         embeddings = self._generate_embeddings(
             df["vh_protein_sequence"].tolist(),
             df["vl_protein_sequence"].tolist(),
@@ -227,9 +201,6 @@ class ESM2RidgeModel(BaseModel):
         for property_name, model in models.items():
             predictions = model.predict(embeddings)
             df_output[property_name] = predictions
-        
-        print(f"Generated predictions for {len(df_output)} samples")
-        print(f"  Properties: {', '.join(models.keys())}")
         
         return df_output
 
