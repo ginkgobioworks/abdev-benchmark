@@ -8,7 +8,7 @@ Saprot (Structure-aware Protein Language Model) generates predictions for protei
 
 ### Features
 
-Two Saprot features are used as baselines:
+Two Saprot features are used as model:
 
 1. **solubility_probability**: Predicted solubility → predicts PR_CHO (polyreactivity)
 2. **stability_score**: Predicted stability → predicts Tm2 (melting temperature)

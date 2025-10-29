@@ -27,6 +27,6 @@ Thumbs.db
 *.bak
 
 # Baseline outputs and artifacts
-baselines/**/outputs/
+model/**/outputs/
 .tmp_cv_splits/
 outputs/models/

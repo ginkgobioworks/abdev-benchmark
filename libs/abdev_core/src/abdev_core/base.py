@@ -15,7 +15,7 @@ class BaseModel(ABC):
     Important: Models should NOT implement cross-validation internally. The orchestrator
     is responsible for splitting data and calling train/predict multiple times if needed.
     
-    All baselines must implement both methods. Non-training baselines should implement
+    All model must implement both methods. Non-training model should implement
     a no-op train() method or save minimal state.
     """
     

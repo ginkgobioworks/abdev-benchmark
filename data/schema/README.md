@@ -4,7 +4,7 @@ This directory defines the data formats and contracts for the antibody developab
 
 ## Prediction Format
 
-All baselines must output predictions in the following CSV format:
+All model must output predictions in the following CSV format:
 
 ### Required Columns
 - `antibody_name` (string): Unique identifier for the antibody
@@ -72,7 +72,7 @@ Held-out test set with sequences only (no labels):
 
 ## Output Directory Structure
 
-Baselines should write predictions to:
+Model should write predictions to:
 ```
 predictions/
   {dataset_name}/        # e.g., "GDPa1", "GDPa1_cross_validation", "heldout_test"

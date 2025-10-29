@@ -19,7 +19,7 @@ This baseline serves several important purposes:
 ### Training
 
 ```bash
-cd baselines/random_predictor
+cd model/random_predictor
 pixi install
 python -m random_predictor train \
   --data ../../data/GDPa1_v1.2_20250814.csv \
@@ -46,7 +46,7 @@ python -m random_predictor predict \
 
 - **Reproducible**: Uses a fixed random seed for consistent results
 - **Property-aware**: Generates predictions within realistic ranges based on training data
-- **Standard Interface**: Implements the BaseModel contract like all other baselines
+- **Standard Interface**: Implements the BaseModel contract like all other model
 
 ## Performance Expectations
 
