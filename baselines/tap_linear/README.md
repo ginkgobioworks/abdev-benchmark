@@ -8,7 +8,7 @@ This baseline uses 5 TAP descriptors to predict antibody developability properti
 - **SFvCSP**: Structural Fv Charge Symmetry Parameter
 - **PSH**: Patch Surface Hydrophobicity
 - **PPC**: Positive Patch Charge
-- **PNC**: Negative Patch Charge  
+- **PNC**: Negative Patch Charge
 - **CDR Length**: Combined CDR length
 
 A Ridge regression model is trained separately for each biophysical property using 5-fold cross-validation.
@@ -105,7 +105,7 @@ class TapLinearModel(BaseModel):
         tap_features = load_features("TAP", dataset="GDPa1")
         # Train models and generate CV predictions
         ...
-    
+
     def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
         # Load features from centralized store
         tap_features = load_features("TAP", dataset="heldout_test")
@@ -125,4 +125,3 @@ Predictions are written to `<out-dir>/predictions.csv` with columns:
 ## Reference
 
 TAP features from: Raybould MIJ, et al. (2019). "Five computational developability guidelines for therapeutic antibody profiling." PNAS.
-

@@ -9,4 +9,3 @@ app = create_cli_app(AntifoldModel, "AntiFold")
 
 if __name__ == "__main__":
     app()
-

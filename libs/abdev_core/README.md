@@ -77,12 +77,12 @@ import pandas as pd
 
 class BaseModel(ABC):
     """Contract: train writes to run_dir; predict reads run_dir and writes predictions.csv."""
-    
+
     @abstractmethod
     def train(self, df: pd.DataFrame, run_dir: Path, *, seed: int = 42) -> None:
         """Train the model and save artifacts to run_dir."""
         ...
-    
+
     @abstractmethod
     def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
         """Generate predictions using saved model artifacts."""
@@ -111,38 +111,38 @@ from abdev_core import BaseModel, PROPERTY_LIST, load_features
 class MyModel(BaseModel):
     def train(self, df: pd.DataFrame, run_dir: Path, *, seed: int = 42) -> None:
         run_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Load features from centralized store
         features = load_features("TAP", dataset="GDPa1")
         df_merged = df.merge(features.reset_index(), on="antibody_name")
-        
+
         # Train a simple model
         model = LinearRegression()
         X = df_merged[['SFvCSP', 'PSH']]  # TAP features
         y = df_merged['HIC']
         model.fit(X, y)
-        
+
         # Save model
         with open(run_dir / "model.pkl", "wb") as f:
             pickle.dump(model, f)
-    
+
     def predict(self, df: pd.DataFrame, run_dir: Path, out_dir: Path) -> None:
         out_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Load features (auto-detects dataset)
         dataset = "heldout_test" if "fold" not in df.columns else "GDPa1"
         features = load_features("TAP", dataset=dataset)
         df_merged = df.merge(features.reset_index(), on="antibody_name")
-        
+
         # Load model
         with open(run_dir / "model.pkl", "rb") as f:
             model = pickle.load(f)
-        
+
         # Generate predictions
         X = df_merged[['SFvCSP', 'PSH']]
         df_output = df[['antibody_name', 'vh_protein_sequence', 'vl_protein_sequence']].copy()
         df_output['HIC'] = model.predict(X)
-        
+
         # Write output
         df_output.to_csv(out_dir / "predictions.csv", index=False)
 
@@ -276,4 +276,3 @@ pytest tests/
 # Type checking
 mypy src/
 ```
-

@@ -9,4 +9,3 @@ app = create_cli_app(Aggrescan3dModel, "Aggrescan3D")
 
 if __name__ == "__main__":
     app()
-

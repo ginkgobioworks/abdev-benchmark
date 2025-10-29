@@ -67,4 +67,3 @@ Aggrescan3D: Zambrano R, et al. (2015). "AGGRESCAN3D (A3D): server for predictio
 ## Acknowledgements
 
 Aggrescan3D features computed via Tamarind.bio.
-

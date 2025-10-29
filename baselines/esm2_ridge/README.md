@@ -45,7 +45,7 @@ combined_embedding = [vh_embedding, vl_embedding]
 
 For ESM2-t6 (8M parameters), the embedding dimension is 320, so:
 - VH embedding: 320D
-- VL embedding: 320D  
+- VL embedding: 320D
 - Combined: 640D
 
 ### 3. Ridge Regression Training
@@ -164,4 +164,3 @@ This baseline uses the smallest ESM2 model (8M parameters) for efficiency. Large
 - **ESM-2**: Lin et al. (2022), "Language models of protein sequences at the scale of evolution"
 - **Model checkpoint**: [facebook/esm2_t6_8M_UR50D](https://huggingface.co/facebook/esm2_t6_8M_UR50D)
 - **GDPa1 dataset**: [ginkgo-datapoints/GDPa1](https://huggingface.co/datasets/ginkgo-datapoints/GDPa1)
-

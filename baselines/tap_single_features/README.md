@@ -73,4 +73,3 @@ Each file contains predictions only for the properties that correlate with that 
 ## Notes
 
 This is a simple baseline that demonstrates feature-property relationships. More sophisticated models (like `tap_linear`) combine multiple features for better predictions.
-

@@ -9,4 +9,3 @@ app = create_cli_app(SaprotVhModel, "Saprot_VH")
 
 if __name__ == "__main__":
     app()
-

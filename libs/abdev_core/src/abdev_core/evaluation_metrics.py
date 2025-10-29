@@ -12,7 +12,7 @@ from . import PROPERTY_LIST, ASSAY_HIGHER_IS_BETTER
 def recall_at_k(y_true: np.ndarray, y_pred: np.ndarray, frac: float = 0.1) -> float:
     """Calculate recall (TP)/(TP+FN) for top fraction of true values.
 
-    A recall of 1 would mean that the top fraction of true values are also the top 
+    A recall of 1 would mean that the top fraction of true values are also the top
     fraction of predicted values. There is no penalty for ranking the top k differently.
 
     Args:
@@ -42,12 +42,12 @@ def evaluate(
     predictions_series: pd.Series, target_series: pd.Series, assay_col: str
 ) -> dict[str, float]:
     """Evaluate predictions for a single assay.
-    
+
     Args:
         predictions_series: Predicted values
         target_series: True values
         assay_col: Name of the assay being evaluated
-        
+
     Returns:
         Dictionary with evaluation metrics
     """
@@ -55,9 +55,11 @@ def evaluate(
     mask = ~(predictions_series.isna() | target_series.isna())
     predictions_clean = predictions_series[mask]
     target_clean = target_series[mask]
-    
+
     results_dict = {
-        "spearman": spearmanr(predictions_clean, target_clean, nan_policy="omit").correlation
+        "spearman": spearmanr(
+            predictions_clean, target_clean, nan_policy="omit"
+        ).correlation
     }
     # Top 10% recall
     y_true = target_clean.values
@@ -77,24 +79,24 @@ def evaluate_cross_validation(
     num_folds: int = 5,
 ) -> list[dict[str, float]]:
     """Run evaluation in a cross-validation loop.
-    
+
     Args:
         predictions_series: Predicted values
         target_series: True values
         folds_series: Fold assignments
         assay_col: Name of the assay being evaluated
         num_folds: Expected number of folds for validation
-        
+
     Returns:
         List of dictionaries with per-fold, aggregated, and averaged metrics
     """
     results_list = []
     per_fold_metrics = defaultdict(list)
-    
+
     actual_folds = folds_series.nunique()
     if actual_folds != num_folds:
         raise ValueError(f"Expected {num_folds} folds, got {actual_folds}")
-    
+
     # Per-fold metrics
     for fold in sorted(folds_series.unique()):
         predictions_series_fold = predictions_series[folds_series == fold]
@@ -102,24 +104,24 @@ def evaluate_cross_validation(
         results = evaluate(predictions_series_fold, target_series_fold, assay_col)
         results["fold"] = str(fold)
         results_list.append(results)
-        
+
         # Track for averaging
         for key, value in results.items():
             if key != "fold":
                 per_fold_metrics[key].append(value)
-    
+
     # Aggregated metrics (all folds as one dataset)
     aggregated_results = evaluate(predictions_series, target_series, assay_col)
     aggregated_results["fold"] = "aggregated"
     results_list.append(aggregated_results)
-    
+
     # Averaged metrics (mean of per-fold metrics)
     averaged_results = {}
     for key, values in per_fold_metrics.items():
         averaged_results[key] = np.mean(values)
     averaged_results["fold"] = "average"
     results_list.append(averaged_results)
-    
+
     return results_list
 
 
@@ -133,9 +135,9 @@ def evaluate_model(
     split: str = "test",
 ) -> list[dict]:
     """Evaluate a single model on all properties.
-    
+
     The predictions dataframe should have columns named by property (e.g., HIC, Tm2).
-    
+
     Args:
         preds_path: Path to predictions CSV
         target_path: Path to ground truth CSV
@@ -144,21 +146,23 @@ def evaluate_model(
         fold_col: Column name for fold assignments (required for cross-validation)
         num_folds: Number of folds for validation (used in cross-validation)
         split: Either "train" or "test" to identify the data split
-        
+
     Returns:
         List of evaluation result dictionaries
     """
     predictions_df = pd.read_csv(preds_path)
     target_df = pd.read_csv(target_path)
-    properties_in_preds = [col for col in predictions_df.columns if col in PROPERTY_LIST]
-    
+    properties_in_preds = [
+        col for col in predictions_df.columns if col in PROPERTY_LIST
+    ]
+
     # Determine which columns to include from target_df
     target_cols = ["antibody_name"] + PROPERTY_LIST
     if dataset_name == "GDPa1_cross_validation" and fold_col:
         if fold_col not in target_df.columns:
             raise ValueError(f"Fold column '{fold_col}' not found in target data")
         target_cols.insert(1, fold_col)
-    
+
     df_merged = pd.merge(
         target_df[target_cols],
         predictions_df[["antibody_name"] + properties_in_preds],
@@ -166,7 +170,7 @@ def evaluate_model(
         how="left",
         suffixes=("_true", "_pred"),
     )
-    
+
     results_list = []
     for assay_col in properties_in_preds:
         if dataset_name == "GDPa1_cross_validation":
@@ -189,7 +193,9 @@ def evaluate_model(
                 results_list.append(results)
         else:
             results = evaluate(
-                df_merged[assay_col + "_pred"], df_merged[assay_col + "_true"], assay_col
+                df_merged[assay_col + "_pred"],
+                df_merged[assay_col + "_true"],
+                assay_col,
             )
             results["dataset"] = dataset_name
             results["assay"] = assay_col
@@ -199,4 +205,3 @@ def evaluate_model(
             results_list.append(results)
 
     return results_list
-

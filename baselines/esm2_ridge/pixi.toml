@@ -29,4 +29,3 @@ ruff = ">=0.1"
 [feature.dev.tasks]
 lint = "ruff check src && ruff format --check src"
 test = "pytest tests -v"
-

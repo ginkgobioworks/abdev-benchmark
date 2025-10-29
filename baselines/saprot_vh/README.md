@@ -62,4 +62,3 @@ Saprot: Su J, et al. (2023). "SaProt: Protein Language Modeling with Structure-a
 ## Acknowledgements
 
 Saprot features computed via Tamarind.bio.
-
