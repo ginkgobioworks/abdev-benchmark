@@ -27,7 +27,7 @@ SOFTWARE.
 ### Datasets
 The benchmark datasets included in this repository (under `data/`) may be
 subject to separate terms of use and restrictions. Please refer to the
-documentation of the originating sources of the `data/` directory for specific 
+documentation of the originating sources of the `data/` directory for specific
 dataset licensing information.
 
 ### Baseline Models and External Code
@@ -35,11 +35,10 @@ Individual baseline implementations (under `baselines/`) may incorporate or
 depend on third-party code, models, or methods that are subject to their own
 licenses and terms of use. Each baseline directory may contain its own LICENSE
 or README file specifying applicable terms. Users should review and comply with
-any such terms in addition to those of original origination for models and code when 
+any such terms in addition to those of original origination for models and code when
 using or distributing baseline implementations.
 
 When contributing a new baseline that uses external methods or models, please:
 - Clearly document the source and any licensing requirements in the baseline's README
 - Include appropriate citations and attributions
 - Ensure compatibility with this repository's MIT License or note any restrictions
-

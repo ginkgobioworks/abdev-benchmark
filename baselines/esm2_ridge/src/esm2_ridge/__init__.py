@@ -3,4 +3,3 @@
 from .model import ESM2RidgeModel
 
 __all__ = ["ESM2RidgeModel"]
-

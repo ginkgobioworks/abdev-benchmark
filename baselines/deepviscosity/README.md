@@ -61,4 +61,3 @@ DeepViscosity: Sharma V, et al. (2023). "In silico prediction of antibody viscos
 ## Acknowledgements
 
 DeepViscosity features computed via Tamarind.bio.
-

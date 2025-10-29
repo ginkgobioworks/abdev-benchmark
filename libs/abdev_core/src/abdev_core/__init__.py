@@ -55,4 +55,3 @@ __all__ = [
     "validate_prediction_format",
     "validate_prediction_file",
 ]
-

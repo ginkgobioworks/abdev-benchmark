@@ -91,56 +91,56 @@ from abdev_core import BaseModel, load_features
 
 class YourModel(BaseModel):
     """Your model description.
-    
+
     This baseline [describe approach].
     """
-    
+
     def train(self, df: pd.DataFrame, run_dir: Path, *, seed: int = 42) -> None:
         """Train model on ALL provided data and save artifacts to run_dir.
-        
+
         Args:
             df: Training dataframe with sequences and labels
             run_dir: Directory to save model artifacts
             seed: Random seed for reproducibility
         """
         run_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Load features if needed
         features = load_features("YourFeatureSource", dataset="GDPa1")
-        
+
         # Train your model on ALL samples in df
         # The orchestrator handles CV splitting externally
         # ... your training logic here ...
-        
+
         # Save model artifacts
         # model_path = run_dir / "model.pkl"
         # pickle.dump(model, open(model_path, "wb"))
-        
+
         print(f"Model saved to {run_dir}")
-    
+
     def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
         """Generate predictions for ALL provided samples.
-        
+
         Args:
             df: Input dataframe with sequences
             run_dir: Directory containing saved model artifacts
-            
+
         Returns:
             DataFrame with predictions
         """
         # Load model artifacts
         # model = pickle.load(open(run_dir / "model.pkl", "rb"))
-        
+
         # Load features if needed
         features = load_features("YourFeatureSource")
-        
+
         # Generate predictions for ALL samples
         # ... your prediction logic here ...
-        
+
         # Return predictions
         df_output = df[["antibody_name", "vh_protein_sequence", "vl_protein_sequence"]].copy()
         # df_output["HIC"] = predictions
-        
+
         return df_output
 ```
 
@@ -377,4 +377,3 @@ Add XYZ baseline with feature engineering
 ## Questions?
 
 Open an issue or reach out to maintainers.
-

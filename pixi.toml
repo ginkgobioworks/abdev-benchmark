@@ -36,4 +36,3 @@ ipython = ">=8.0"
 [feature.dev.tasks]
 # Testing tasks (require dev environment)
 test-contract = "python tests/test_baseline_contract.py"
-

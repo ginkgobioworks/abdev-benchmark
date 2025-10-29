@@ -66,4 +66,3 @@ AntiFold: Ruffolo JA, et al. (2022). "Antibody structure prediction using interp
 ## Acknowledgements
 
 AntiFold features computed via Tamarind.bio.
-

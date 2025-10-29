@@ -186,12 +186,12 @@ All baselines must implement the `BaseModel` interface with `train()` and `predi
    version = "0.1.0"
    channels = ["conda-forge"]
    platforms = ["linux-64", "osx-64", "osx-arm64"]
-   
+
    [dependencies]
    python = "3.11.*"
    pandas = ">=2.0"
    typer = ">=0.9"
-   
+
    [pypi-dependencies]
    abdev-core = { path = "../../libs/abdev_core", editable = true }
    your-baseline = { path = ".", editable = true }
@@ -204,17 +204,17 @@ All baselines must implement the `BaseModel` interface with `train()` and `predi
    from pathlib import Path
    import pandas as pd
    from abdev_core import BaseModel
-   
+
    class YourModel(BaseModel):
        def train(self, df: pd.DataFrame, run_dir: Path, *, seed: int = 42) -> None:
            """Train model on ALL provided data and save artifacts to run_dir."""
            # Train on ALL samples in df (no internal CV)
            # Your training logic here
            pass
-       
+
        def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
            """Generate predictions for ALL provided samples.
-           
+
            Returns:
                DataFrame with predictions. Orchestrator handles saving to file.
            """
@@ -228,9 +228,9 @@ All baselines must implement the `BaseModel` interface with `train()` and `predi
    ```python
    from abdev_core import create_cli_app
    from .model import YourModel
-   
+
    app = create_cli_app(YourModel, "Your Model")
-   
+
    if __name__ == "__main__":
        app()
    ```
@@ -248,7 +248,7 @@ All baselines must implement the `BaseModel` interface with `train()` and `predi
    ```bash
    # From repository root
    python tests/test_baseline_contract.py --baseline your_baseline
-   
+
    # Or test train/predict manually
    cd baselines/your_baseline
    pixi install

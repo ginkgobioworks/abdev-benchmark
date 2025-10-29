@@ -9,4 +9,3 @@ app = create_cli_app(TapSingleFeaturesModel, "TAP Single Features")
 
 if __name__ == "__main__":
     app()
-

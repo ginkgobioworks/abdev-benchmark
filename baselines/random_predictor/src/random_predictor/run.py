@@ -9,4 +9,3 @@ app = create_cli_app(RandomPredictorModel, "Random Predictor")
 
 if __name__ == "__main__":
     app()
-

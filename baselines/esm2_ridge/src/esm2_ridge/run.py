@@ -9,4 +9,3 @@ app = create_cli_app(ESM2RidgeModel, "ESM2 Ridge")
 
 if __name__ == "__main__":
     app()
-

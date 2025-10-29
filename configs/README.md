@@ -182,5 +182,3 @@ import toml
 config = toml.load("configs/my_config.toml")
 print(config)
 ```
-
-

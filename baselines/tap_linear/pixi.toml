@@ -28,4 +28,3 @@ ruff = ">=0.1"
 # Development tasks only - orchestrator will call train/predict directly
 lint = "ruff check src && ruff format --check src"
 test = "pytest tests -v"
-

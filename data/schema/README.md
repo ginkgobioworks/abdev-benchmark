@@ -125,4 +125,3 @@ Validation checks:
 - No duplicate antibody_name values
 - At least one property column present
 - Numeric values in property columns
-

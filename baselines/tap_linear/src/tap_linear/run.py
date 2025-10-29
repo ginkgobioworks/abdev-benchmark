@@ -9,4 +9,3 @@ app = create_cli_app(TapLinearModel, "TAP Linear")
 
 if __name__ == "__main__":
     app()
-

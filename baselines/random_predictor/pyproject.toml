@@ -18,4 +18,3 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 random_predictor = ["py.typed"]
-

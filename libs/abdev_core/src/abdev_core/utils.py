@@ -3,32 +3,33 @@
 from pathlib import Path
 from typing import List, Optional
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import KFold
 
 
 def get_indices(seq_with_gaps: str) -> List[int]:
     """
     Get the aligned indices into the gapless (unaligned) sequence.
-    
+
     Args:
         seq_with_gaps: Sequence with gap characters ('-')
-        
+
     Returns:
         List of indices for non-gap positions
     """
     return [i for i, c in enumerate(seq_with_gaps) if c != "-"]
 
 
-def extract_region(residue_scores: list, aho_indices: List[int], region_name: str) -> list:
+def extract_region(
+    residue_scores: list, aho_indices: List[int], region_name: str
+) -> list:
     """
     Given a bunch of residue-level features/scores, extract a region of interest.
-    
+
     Args:
         residue_scores: List of per-residue scores
         aho_indices: Aho numbering indices
         region_name: Name of the region to extract
-        
+
     Returns:
         Scores for the specified region
     """
@@ -53,20 +54,23 @@ def load_from_tamarind(
 ) -> pd.DataFrame:
     """
     Convert outputs from Tamarind to the format expected by the benchmark.
-    
+
     Args:
         filepath: Path to Tamarind output CSV
         strip_feature_suffix: Whether to strip feature suffixes from column names
         only_return_features_and_names: If provided, only return these columns
         df_sequences: DataFrame with sequence information for merging
-        
+
     Returns:
         DataFrame in benchmark format
     """
     df = pd.read_csv(filepath)
     # If sequence df exists, merge on it and use its antibody_name. Written here for IgGs (i.e. heavy and light chains)
     if df_sequences is not None:
-        sequence_heavy_col, sequence_light_col = "vh_protein_sequence", "vl_protein_sequence"
+        sequence_heavy_col, sequence_light_col = (
+            "vh_protein_sequence",
+            "vl_protein_sequence",
+        )
         if "heavySequence" in df.columns:
             heavy_col = "heavySequence"
             light_col = "lightSequence"
@@ -76,9 +80,9 @@ def load_from_tamarind(
                 right_on=[sequence_heavy_col, sequence_light_col],
                 how="left",
             )
-            df = df_merged.drop(columns=[sequence_heavy_col, sequence_light_col]).dropna(
-                subset=["antibody_name"]
-            )
+            df = df_merged.drop(
+                columns=[sequence_heavy_col, sequence_light_col]
+            ).dropna(subset=["antibody_name"])
         elif "sequence" in df.columns:
             # Only merge on heavy chain
             df_merged = df.merge(
@@ -87,15 +91,21 @@ def load_from_tamarind(
                 right_on=sequence_heavy_col,
                 how="left",
             )
-            df = df_merged.drop(columns=[sequence_heavy_col]).dropna(subset=["antibody_name"])
+            df = df_merged.drop(columns=[sequence_heavy_col]).dropna(
+                subset=["antibody_name"]
+            )
         else:
             print(
                 f"heavySequence not found in df columns. Found columns: {df.columns}. Using Job Name to get antibody name."
             )
-            df["antibody_name"] = df["Job Name"].apply(lambda x: "-".join(x.split("-")[:-1]))
+            df["antibody_name"] = df["Job Name"].apply(
+                lambda x: "-".join(x.split("-")[:-1])
+            )
     else:
         # e.g. bleselumab-g5mst: Just strip the last part after hyphen
-        df["antibody_name"] = df["Job Name"].apply(lambda x: "-".join(x.split("-")[:-1]))
+        df["antibody_name"] = df["Job Name"].apply(
+            lambda x: "-".join(x.split("-")[:-1])
+        )
     if only_return_features_and_names is not None:
         columns_with_dash = [col for col in df.columns if "-" in col]
         df = df[["antibody_name"] + columns_with_dash]
@@ -105,34 +115,31 @@ def load_from_tamarind(
 
 
 def assign_random_folds(
-    df: pd.DataFrame,
-    num_folds: int = 5,
-    seed: int = 42,
-    fold_col: str = "fold"
+    df: pd.DataFrame, num_folds: int = 5, seed: int = 42, fold_col: str = "fold"
 ) -> pd.DataFrame:
     """Assign random fold indices to data using stratified K-Fold.
-    
+
     Uses sklearn's KFold for reproducible random fold assignment.
-    
+
     Args:
         df: Input dataframe
         num_folds: Number of folds to create
         seed: Random seed for reproducibility
         fold_col: Column name to store fold assignments
-        
+
     Returns:
         DataFrame with fold column added
     """
     df = df.copy()
     kfold = KFold(n_splits=num_folds, shuffle=True, random_state=seed)
-    
+
     # Initialize fold column
     df[fold_col] = -1
-    
+
     # Assign folds
     for fold_idx, (_, test_indices) in enumerate(kfold.split(df)):
         df.iloc[test_indices, df.columns.get_loc(fold_col)] = fold_idx
-    
+
     return df
 
 
@@ -143,36 +150,35 @@ def split_data_by_fold(
     output_path: Optional[Path] = None,
 ) -> pd.DataFrame:
     """Split training data by fold for cross-validation.
-    
+
     This function creates a training split by excluding the specified fold.
     The excluded fold can be used as validation data.
-    
+
     Args:
         data_path: Path to input CSV with fold assignments
         fold: Fold number to hold out (0-indexed)
         fold_col: Column name containing fold assignments
         output_path: Optional path to save the split data
-        
+
     Returns:
         DataFrame with training data (excluding the specified fold)
-        
+
     Raises:
         ValueError: If data doesn't contain fold column
     """
     # Read data
     df = pd.read_csv(data_path)
-    
+
     if fold_col not in df.columns:
         raise ValueError(f"Data must contain {fold_col} column for cross-validation")
-    
+
     # Filter out the specified fold (this creates the training split)
     df_train = df[df[fold_col] != fold].copy()
-    
+
     # Save if output path provided
     if output_path:
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         df_train.to_csv(output_path, index=False)
-    
-    return df_train
 
+    return df_train

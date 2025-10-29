@@ -49,5 +49,3 @@ verbose = false
 cv_dataset_name = "GDPa1_cross_validation"
 # Compute per-fold metrics in addition to averages
 per_fold_metrics = false
-
-
