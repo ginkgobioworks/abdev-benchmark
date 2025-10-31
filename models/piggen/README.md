@@ -92,7 +92,7 @@ From repository root:
 pixi run all
 ```
 
-This automatically discovers and runs all model, including p-IgGen, with 5-fold cross-validation.
+This automatically discovers and runs all models, including p-IgGen, with 5-fold cross-validation.
 
 ## Implementation Notes
 
