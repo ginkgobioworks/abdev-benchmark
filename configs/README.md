@@ -89,8 +89,8 @@ Output directories (relative to repository root unless absolute):
 ### `[model]`
 Model selection:
 - `model_dir` - Directory containing model (default: `model`)
-- `include` - List of baseline names to run (empty = discover all)
-- `exclude` - List of baseline names to skip (default: empty)
+- `include` - List of model names to run (empty = discover all)
+- `exclude` - List of model names to skip (default: empty)
 
 ### `[execution]`
 Execution control:
