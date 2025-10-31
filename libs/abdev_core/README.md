@@ -23,7 +23,7 @@ abdev-core = { path = "../../libs/abdev_core", editable = true }
 
 ## Feature Loading
 
-Features are managed centrally and can be imported by any baseline. Model **do not** need to know feature file paths.
+Features are managed centrally and can be imported by any baseline. Models **do not** need to know feature file paths.
 
 ### Simple Usage
 
