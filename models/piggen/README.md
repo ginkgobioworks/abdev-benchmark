@@ -105,7 +105,7 @@ This automatically discovers and runs all models, including p-IgGen, with 5-fold
 ## Features Used
 
 - **p-IgGen embeddings**: 768-dimensional vectors from the p-IgGen hidden layer
-- **No auxiliary features**: Unlike TAP model, this approach relies solely on sequence information encoded in the embeddings
+- **No auxiliary features**: Unlike TAP models, this approach relies solely on sequence information encoded in the embeddings
 
 ## Performance Considerations
 
