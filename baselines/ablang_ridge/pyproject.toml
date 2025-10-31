@@ -1,0 +1,15 @@
+[project]
+name = "ablang-ridge"
+version = "0.1.0"
+description = "Ridge on AbLang2 embeddings baseline for ABDEV"
+requires-python = ">=3.11"
+
+[project.urls]
+Repository = "https://github.com/ginkgobioworks/abdev-benchmark"
+
+[build-system]
+requires = ["setuptools>=67", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+"ablang_ridge" = ["*.txt", "*.json"]
