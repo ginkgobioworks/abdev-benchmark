@@ -71,7 +71,7 @@ At prediction time:
 From the repository root:
 
 ```bash
-cd baselines/esm2_ridge
+cd model/esm2_ridge
 pixi install
 
 # Train on GDPa1 dataset
@@ -97,7 +97,7 @@ From repository root:
 pixi run all
 ```
 
-This automatically discovers and runs all baselines, including ESM2 Ridge, with 5-fold cross-validation.
+This automatically discovers and runs all model, including ESM2 Ridge, with 5-fold cross-validation.
 
 ## Implementation Notes
 
@@ -111,7 +111,7 @@ This automatically discovers and runs all baselines, including ESM2 Ridge, with 
 
 - **ESM2 embeddings**: 320-dimensional vectors from ESM2-t6 (8M) hidden layer
 - **Two-chain concatenation**: 640D combined representation (320D VH + 320D VL)
-- **No auxiliary features**: Unlike TAP baselines, this approach relies solely on sequence information encoded in the embeddings
+- **No auxiliary features**: Unlike TAP model, this approach relies solely on sequence information encoded in the embeddings
 
 ## Performance Considerations
 
@@ -143,7 +143,7 @@ This automatically discovers and runs all baselines, including ESM2 Ridge, with 
 - **Output**: Scalar property predictions
 - **Training**: One model per property
 
-## Comparison to Other Baselines
+## Comparison to Other Models
 
 ### vs. p-IgGen
 

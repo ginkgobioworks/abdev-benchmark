@@ -23,7 +23,7 @@ abdev-core = { path = "../../libs/abdev_core", editable = true }
 
 ## Feature Loading
 
-Features are managed centrally and can be imported by any baseline. Baselines **do not** need to know feature file paths.
+Features are managed centrally and can be imported by any baseline. Models **do not** need to know feature file paths.
 
 ### Simple Usage
 
@@ -94,7 +94,7 @@ class BaseModel(ABC):
 1. **train()** writes all model artifacts (models, weights, checkpoints, CV predictions) to `run_dir`
 2. **predict()** reads artifacts from `run_dir` and writes `predictions.csv` to `out_dir`
 3. Both methods must create their output directories if they don't exist
-4. Non-training baselines should implement a no-op `train()` method
+4. Non-training model should implement a no-op `train()` method
 
 ## Implementing a Baseline
 
@@ -222,7 +222,7 @@ FeatureLoader()                                # Advanced usage
 
 ### Base Classes
 ```python
-BaseModel  # Abstract interface for baselines
+BaseModel  # Abstract interface for model
 ```
 
 ### CLI Utilities
@@ -241,7 +241,7 @@ load_from_tamarind(filepath, ...)       # Load Tamarind outputs
 
 ## Output Format
 
-All baselines must write `predictions.csv` with the following structure:
+All model must write `predictions.csv` with the following structure:
 
 ```csv
 antibody_name,vh_protein_sequence,vl_protein_sequence,HIC,Tm2,Titer,PR_CHO,AC-SINS_pH7.4
@@ -263,9 +263,9 @@ Optional property columns (include only those you predict):
 
 ## Examples
 
-See existing baselines for full implementations:
-- [`baselines/tap_linear`](../../baselines/tap_linear/): Training baseline with CV
-- [`baselines/aggrescan3d`](../../baselines/aggrescan3d/): Non-training baseline (feature passthrough)
+See existing model for full implementations:
+- [`model/tap_linear`](../../model/tap_linear/): Training baseline with CV
+- [`model/aggrescan3d`](../../model/aggrescan3d/): Non-training baseline (feature passthrough)
 
 ## Development
 

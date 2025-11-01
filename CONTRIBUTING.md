@@ -1,6 +1,6 @@
 # Contributing to Antibody Developability Benchmark
 
-Thank you for your interest in contributing! This guide will help you understand the repository structure and how to add new baselines or improvements.
+Thank you for your interest in contributing! This guide will help you understand the repository structure and how to add new models or improvements.
 
 In addition to this repo, feel free to reach out via slack in the [Bits in Bio](https://join.slack.com/t/bitsinbio/shared_invite/zt-3dqigle2b-e0dEkfPPzzWL055j_8N_eQ) community, specifically the channel `#competition-ginkgo-antibody-2025`.
 
@@ -28,30 +28,30 @@ In addition to this repo, feel free to reach out via slack in the [Bits in Bio](
 
 The repository uses a multi-project Pixi architecture:
 
-- **`baselines/`**: Each baseline is an independent Pixi project
+- **`models/`**: Each model is an independent Pixi project
 - **`libs/abdev_core/`**: Shared utilities, base classes, and evaluation
 - **`configs/`**: Configuration files for orchestrator
 - **`data/`**: Benchmark datasets and schema documentation
 - **`outputs/`**: Generated outputs (models, predictions, evaluation)
-- **`tests/`**: Baseline contract tests and reference data
-- **`run_all_baselines.py`**: Main orchestrator script
+- **`tests/`**: Model contract tests and reference data
+- **`run_all_models.py`**: Main orchestrator script
 
-## Adding a New Baseline
+## Adding a New Model
 
 ### 1. Create Directory Structure
 
 ```bash
-mkdir -p baselines/your_baseline/src/your_baseline
-cd baselines/your_baseline
+mkdir -p models/your_model/src/your_model
+cd models/your_model
 ```
 
 ### 2. Create `pixi.toml`
 
 ```toml
 [workspace]
-name = "your-baseline"
+name = "your-model"
 version = "0.1.0"
-description = "Brief description of your baseline"
+description = "Brief description of your model"
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64"]
 
@@ -63,7 +63,7 @@ numpy = ">=1.24"
 
 [pypi-dependencies]
 abdev-core = { path = "../../libs/abdev_core", editable = true }
-your-baseline = { path = ".", editable = true }
+your-model = { path = ".", editable = true }
 # Add other PyPI dependencies
 
 [feature.dev.dependencies]
@@ -73,16 +73,16 @@ ruff = ">=0.1"
 
 ### 3. Implement Model Class
 
-Create `src/your_baseline/__init__.py`:
+Create `src/your_model/__init__.py`:
 ```python
-"""Your baseline description."""
+"""Your model description."""
 
 __version__ = "0.1.0"
 ```
 
-Create `src/your_baseline/model.py`:
+Create `src/your_model/model.py`:
 ```python
-"""Model implementation for your baseline."""
+"""Model implementation for your model."""
 
 from pathlib import Path
 import pandas as pd
@@ -92,7 +92,7 @@ from abdev_core import BaseModel, load_features
 class YourModel(BaseModel):
     """Your model description.
     
-    This baseline [describe approach].
+    This model [describe approach].
     """
     
     def train(self, df: pd.DataFrame, run_dir: Path, *, seed: int = 42) -> None:
@@ -144,7 +144,7 @@ class YourModel(BaseModel):
         return df_output
 ```
 
-Create `src/your_baseline/run.py`:
+Create `src/your_model/run.py`:
 ```python
 """CLI entry point."""
 
@@ -157,9 +157,9 @@ if __name__ == "__main__":
     app()
 ```
 
-Create `src/your_baseline/__main__.py`:
+Create `src/your_model/__main__.py`:
 ```python
-"""Allow running as python -m your_baseline."""
+"""Allow running as python -m your_model."""
 
 from .run import app
 
@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
 Create `README.md`:
 ```markdown
-# Your Baseline Name
+# Your Model Name
 
 Brief description.
 
@@ -195,7 +195,7 @@ pixi install
 ### Train Model
 
 \`\`\`bash
-pixi run python -m your_baseline train \
+pixi run python -m your_model train \
   --data ../../data/GDPa1_v1.2_20250814.csv \
   --run-dir ./outputs/run_001 \
   --seed 42
@@ -205,13 +205,13 @@ pixi run python -m your_baseline train \
 
 \`\`\`bash
 # On training data
-pixi run python -m your_baseline predict \
+pixi run python -m your_model predict \
   --data ../../data/GDPa1_v1.2_20250814.csv \
   --run-dir ./outputs/run_001 \
   --out-dir ./outputs/predictions
 
 # On heldout data
-pixi run python -m your_baseline predict \
+pixi run python -m your_model predict \
   --data ../../data/heldout-set-sequences.csv \
   --run-dir ./outputs/run_001 \
   --out-dir ./outputs/predictions_heldout
@@ -235,24 +235,24 @@ Citation if applicable.
 pixi install
 
 # Test train/predict manually
-pixi run python -m your_baseline train \
+pixi run python -m your_model train \
   --data ../../data/GDPa1_v1.2_20250814.csv \
   --run-dir ./test_run
 
-pixi run python -m your_baseline predict \
+pixi run python -m your_model predict \
   --data ../../data/GDPa1_v1.2_20250814.csv \
   --run-dir ./test_run \
   --out-dir ./test_out
 ```
 
-### 6. Validate Baseline Contract
+### 6. Validate Model Contract
 
 ```bash
 # From repository root
-python tests/test_baseline_contract.py --baseline your_baseline
+python tests/test_model_contract.py --model your_model
 ```
 
-This validates that your baseline correctly implements the `BaseModel` interface.
+This validates that your model correctly implements the `BaseModel` interface.
 
 ## Prediction Format Requirements
 
@@ -280,7 +280,7 @@ All predictions must follow the standard format (see `data/schema/README.md`):
 - Docstrings for public functions
 
 ### Documentation
-- Clear README per baseline
+- Clear README per model
 - Inline comments for complex logic
 - Citation for external methods
 
@@ -303,13 +303,13 @@ When adding shared constants, utilities, or evaluation functions:
    - `features.py` - Feature loading utilities
 2. Export in `__init__.py`
 3. Update docstrings
-4. Test that existing baselines still work
+4. Test that existing models still work
 
-### Orchestrator (`run_all_baselines.py`)
+### Orchestrator (`run_all_models.py`)
 
 When modifying the orchestration logic:
 
-1. Test with multiple baselines
+1. Test with multiple models
 2. Ensure config file compatibility
 3. Update `configs/README.md` if adding new config options
 4. Verify evaluation metrics are computed correctly
@@ -328,7 +328,7 @@ We use the standard GitHub fork and pull request workflow:
    ```
 3. **Create a feature branch** (not main):
    ```bash
-   git checkout -b add-your-baseline-name
+   git checkout -b add-your-model-name
    # or
    git checkout -b fix-issue-description
    ```
@@ -336,7 +336,7 @@ We use the standard GitHub fork and pull request workflow:
 5. **Commit your changes** with clear commit messages (see below)
 6. **Push to your fork**:
    ```bash
-   git push origin add-your-baseline-name
+   git push origin add-your-model-name
    ```
 7. **Open a Pull Request** from your fork's branch to our `main` branch
 8. **Address review feedback** - we appreciate your contribution and will attempt a timely review
@@ -347,19 +347,19 @@ Before submitting your PR, please ensure:
 
 - [ ] Code follows style guidelines
 - [ ] Documentation added/updated (README, docstrings, etc.)
-- [ ] Tests added/passing (`python tests/test_baseline_contract.py --baseline your_baseline`)
-- [ ] Lockfile committed (`pixi.lock`) for new baselines
+- [ ] Tests added/passing (`python tests/test_model_contract.py --model your_model`)
+- [ ] Lockfile committed (`pixi.lock`) for new models
 - [ ] README updated if needed
 - [ ] No breaking changes to shared components (or discussed in PR description)
-- [ ] For new baselines: Added entry to main README's baseline table
-- [ ] For new baselines: Specified any external dependencies, data sources, and licensing
+- [ ] For new models: Added entry to main README's model table
+- [ ] For new models: Specified any external dependencies, data sources, and licensing
 - [ ] CI checks pass (if applicable)
 
 ### Commit Messages
 
 Use clear, descriptive commit messages:
 ```
-Add XYZ baseline with feature engineering
+Add XYZ model with feature engineering
 
 - Implement prediction module
 - Add documentation
@@ -369,7 +369,7 @@ Add XYZ baseline with feature engineering
 
 ## Getting Help
 
-- Check existing baselines for examples (e.g., `baselines/random_predictor/`, `baselines/tap_linear/`)
+- Check existing models for examples (e.g., `models/random_predictor/`, `models/tap_linear/`)
 - Read `data/schema/README.md` for format specifications
 - Review `libs/abdev_core/` for shared utilities and base classes
 - See `configs/README.md` for orchestrator configuration options

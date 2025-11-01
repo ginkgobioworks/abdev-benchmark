@@ -114,6 +114,13 @@ class PiGGenModel(BaseModel):
             run_dir: Directory to save trained models
             seed: Random seed (for reproducibility)
         """
+        # Set random seeds for reproducibility
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+        
         run_dir.mkdir(parents=True, exist_ok=True)
         
         # Generate embeddings for all training samples
@@ -146,8 +153,8 @@ class PiGGenModel(BaseModel):
             X = embeddings[not_na_mask]
             y = df_property[property_name].values
             
-            # Train Ridge regression
-            model = Ridge()
+            # Train Ridge regression with seeded random state
+            model = Ridge(random_state=seed)
             model.fit(X, y)
             models[property_name] = model
             

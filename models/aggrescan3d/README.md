@@ -8,7 +8,7 @@ Aggrescan3D calculates aggregation propensity scores from protein structures. Th
 
 ### Feature Variants
 
-Four different aggregation scores are used as baselines:
+Four different aggregation scores are used as model:
 
 1. **aggrescan_average_score**: Average aggregation score across the antibody → predicts HIC
 2. **aggrescan_max_score**: Maximum aggregation score → predicts HIC, PR_CHO

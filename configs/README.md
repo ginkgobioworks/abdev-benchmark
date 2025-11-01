@@ -4,7 +4,7 @@ This directory contains TOML configuration files for the baseline orchestration 
 
 ## Files
 
-- **`default.toml`** - Standard configuration for running all baselines with 5-fold CV
+- **`default.toml`** - Standard configuration for running all model with 5-fold CV
 
 ## Creating Custom Configs
 
@@ -14,7 +14,7 @@ For rapid iteration during development:
 
 ```toml
 # configs/quick_test.toml
-[baselines]
+[model]
 include = ["random_predictor"]  # Single fast baseline
 
 [cross_validation]
@@ -27,7 +27,7 @@ skip_eval = true  # Skip evaluation to save time
 
 Usage:
 ```bash
-python run_all_baselines.py --config configs/quick_test.toml
+python run_all_models.py --config configs/quick_test.toml
 ```
 
 ### Debug Config
@@ -36,7 +36,7 @@ For debugging a specific baseline:
 
 ```toml
 # configs/debug_tap_linear.toml
-[baselines]
+[model]
 include = ["tap_linear"]
 
 [execution]
@@ -49,7 +49,7 @@ For final evaluation runs:
 
 ```toml
 # configs/production.toml
-[baselines]
+[model]
 # Run all except experimental ones
 exclude = ["experimental_baseline"]
 
@@ -86,11 +86,11 @@ Output directories (relative to repository root unless absolute):
 - `evaluation_dir` - Evaluation results directory (default: `outputs/evaluation`)
 - `temp_dir` - Temporary files, auto-cleaned (default: `.tmp_cv_splits`)
 
-### `[baselines]`
-Baseline selection:
-- `baselines_dir` - Directory containing baselines (default: `baselines`)
-- `include` - List of baseline names to run (empty = discover all)
-- `exclude` - List of baseline names to skip (default: empty)
+### `[model]`
+Model selection:
+- `model_dir` - Directory containing model (default: `model`)
+- `include` - List of model names to run (empty = discover all)
+- `exclude` - List of model names to skip (default: empty)
 
 ### `[execution]`
 Execution control:
@@ -108,13 +108,13 @@ Config values can be overridden via command line:
 
 ```bash
 # Override skip_train
-python run_all_baselines.py --config configs/my_config.toml --skip-train
+python run_all_models.py --config configs/my_config.toml --skip-train
 
 # Override run_dir
-python run_all_baselines.py --run-dir /tmp/test_runs
+python run_all_models.py --run-dir /tmp/test_runs
 
 # Override verbose
-python run_all_baselines.py --verbose
+python run_all_models.py --verbose
 ```
 
 CLI arguments take precedence over config file values.
@@ -131,13 +131,13 @@ CLI arguments take precedence over config file values.
 
 ### Benchmarking New Baseline
 ```toml
-[baselines]
+[model]
 include = ["my_new_baseline", "random_predictor"]  # Compare to baseline
 ```
 
 ### Reproducing Paper Results
 ```toml
-[baselines]
+[model]
 include = ["tap_linear", "tap_single_features", "random_predictor"]
 
 [cross_validation]
@@ -150,7 +150,7 @@ predictions_dir = "paper_results/predictions"
 
 ### Quick Iteration
 ```toml
-[baselines]
+[model]
 include = ["my_baseline"]
 
 [cross_validation]
@@ -166,13 +166,13 @@ verbose = true
 **Config not found:**
 ```bash
 # Use absolute path or run from repo root
-python run_all_baselines.py --config /full/path/to/config.toml
+python run_all_models.py --config /full/path/to/config.toml
 ```
 
 **Want to see what config was loaded:**
 ```bash
 # Verbose mode shows config at startup
-python run_all_baselines.py --verbose
+python run_all_models.py --verbose
 ```
 
 **Config syntax error:**

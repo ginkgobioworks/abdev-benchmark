@@ -66,7 +66,7 @@ At prediction time:
 From the repository root:
 
 ```bash
-cd baselines/piggen
+cd model/piggen
 pixi install
 
 # Train on GDPa1 dataset
@@ -92,7 +92,7 @@ From repository root:
 pixi run all
 ```
 
-This automatically discovers and runs all baselines, including p-IgGen, with 5-fold cross-validation.
+This automatically discovers and runs all models, including p-IgGen, with 5-fold cross-validation.
 
 ## Implementation Notes
 
@@ -105,7 +105,7 @@ This automatically discovers and runs all baselines, including p-IgGen, with 5-f
 ## Features Used
 
 - **p-IgGen embeddings**: 768-dimensional vectors from the p-IgGen hidden layer
-- **No auxiliary features**: Unlike TAP baselines, this approach relies solely on sequence information encoded in the embeddings
+- **No auxiliary features**: Unlike TAP models, this approach relies solely on sequence information encoded in the embeddings
 
 ## Performance Considerations
 

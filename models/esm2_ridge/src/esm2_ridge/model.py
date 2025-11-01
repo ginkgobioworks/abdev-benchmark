@@ -123,6 +123,13 @@ class ESM2RidgeModel(BaseModel):
             run_dir: Directory to save trained models
             seed: Random seed (for reproducibility)
         """
+        # Set random seeds for reproducibility
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+        
         run_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate embeddings for all training samples
@@ -150,8 +157,8 @@ class ESM2RidgeModel(BaseModel):
             # Get corresponding embeddings for non-null samples
             X = embeddings[not_na_mask]
             y = df_property[property_name].values
-
-            # Train Ridge regression with alpha=1.0
+            
+            # Train Ridge regression with alpha=1.0 and seeded random state
             model = Ridge(alpha=self.ALPHA, random_state=seed)
             model.fit(X, y)
             models[property_name] = model
@@ -196,5 +203,4 @@ class ESM2RidgeModel(BaseModel):
         for property_name, model in models.items():
             predictions = model.predict(embeddings)
             df_output[property_name] = predictions
-
         return df_output

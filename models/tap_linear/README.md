@@ -113,7 +113,7 @@ class TapLinearModel(BaseModel):
         ...
 ```
 
-Features are managed centrally by `abdev_core` - baselines simply import what they need. See the [abdev_core documentation](../../libs/abdev_core/README.md) for details.
+Features are managed centrally by `abdev_core` - models simply import what they need. See the [abdev_core documentation](../../libs/abdev_core/README.md) for details.
 
 ## Output
 

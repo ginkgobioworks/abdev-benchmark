@@ -4,7 +4,7 @@ Testing framework for validating baseline implementations in the antibody develo
 
 ## Overview
 
-This directory contains tests to ensure baselines correctly implement the train/predict interface and reference data for validation.
+This directory contains tests to ensure model correctly implement the train/predict interface and reference data for validation.
 
 ## Structure
 
@@ -19,12 +19,12 @@ tests/
 
 ## Baseline Contract Testing
 
-The primary test validates that all baselines correctly implement the `BaseModel` interface with train/predict methods.
+The primary test validates that all model correctly implement the `BaseModel` interface with train/predict methods.
 
 ### Running Contract Tests
 
 ```bash
-# Test all baselines
+# Test all model
 python tests/test_baseline_contract.py
 
 # Test specific baseline
@@ -83,7 +83,7 @@ Reference data should be treated as stable. If updates are needed:
 2. Verify the new predictions are correct
 3. Update all affected files consistently
 
-## Adding Tests for New Baselines
+## Adding Tests for New Model
 
 When adding a new baseline:
 
@@ -96,19 +96,19 @@ When adding a new baseline:
 
 ## Best Practices
 
-1. **Always run contract tests** before committing new baselines
+1. **Always run contract tests** before committing new model
 2. **Keep reference data in version control** for reproducibility
 3. **Test with both training and heldout data** to ensure generalization
 4. **Use appropriate test data** - tests use full GDPa1 dataset and heldout sequences
 
 ## Integration with Orchestrator
 
-The contract tests validate individual baseline behavior. The orchestrator (`run_all_baselines.py`) integrates these baselines for:
+The contract tests validate individual baseline behavior. The orchestrator (`run_all_models.py`) integrates these model for:
 - Cross-validation workflows
 - Batch prediction generation
 - Automated evaluation
 
-Test baselines individually first, then run via orchestrator:
+Test model individually first, then run via orchestrator:
 ```bash
 # Individual baseline testing
 python tests/test_baseline_contract.py --baseline tap_linear
@@ -125,7 +125,7 @@ pixi run all
 
 **Solution:**
 ```bash
-cd baselines/your_baseline
+cd model/your_baseline
 pixi install
 ```
 
@@ -150,4 +150,4 @@ pixi install
 
 ## Summary
 
-This testing framework provides validation that baselines correctly implement the train/predict interface required by the orchestrator. Use `test_baseline_contract.py` to validate implementations before integration.
+This testing framework provides validation that model correctly implement the train/predict interface required by the orchestrator. Use `test_baseline_contract.py` to validate implementations before integration.

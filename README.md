@@ -5,12 +5,12 @@ A benchmark suite for evaluating machine learning models on antibody biophysical
 ## Overview
 
 This repository provides:
-- **Baseline models** for predicting antibody developability properties
+- **Models** for predicting antibody developability properties
 - **Standardized evaluation** framework with consistent metrics
 - **Pre-computed features** from various computational tools
 - **Benchmark dataset** (GDPa1) with measured biophysical properties
 
-Each baseline is an isolated [Pixi](https://prefix.dev/) project with its own dependencies and lockfile, ensuring reproducibility.
+Each model is an isolated [Pixi](https://prefix.dev/) project with its own dependencies and lockfile, ensuring reproducibility.
 
 ## Quick Start
 
@@ -27,12 +27,12 @@ git clone <repository-url>
 cd abdev-benchmark
 ```
 
-### Running a Baseline
+### Running a Model
 
-Each baseline follows a standard train/predict workflow. For example, with TAP Linear:
+Each model follows a standard train/predict workflow. For example, with TAP Linear:
 
 ```bash
-cd baselines/tap_linear
+cd models/tap_linear
 pixi install
 
 # Train the model
@@ -53,21 +53,21 @@ pixi run python -m tap_linear predict \
   --out-dir ./outputs/heldout
 ```
 
-All baselines implement the same `BaseModel` interface with `train()` and `predict()` methods.
+All models implement the same `BaseModel` interface with `train()` and `predict()` methods.
 
 **Note:** Models train on ALL provided data. The orchestrator handles data splitting for cross-validation.
 
-### Running All Baselines
+### Running All Models
 
-To train, predict, and evaluate all baselines:
+To train, predict, and evaluate all models:
 
 ```bash
 pixi run all
 ```
 
 This orchestrator will:
-- Automatically discover all baselines (directories with `pixi.toml` in `baselines/`)
-- Install dependencies for each baseline
+- Automatically discover all models (directories with `pixi.toml` in `models/`)
+- Install dependencies for each model
 - Train models with 5-fold cross-validation on GDPa1
 - Generate predictions for both CV and heldout test sets
 - Evaluate predictions and compute metrics (Spearman, Top 10% Recall)
@@ -76,11 +76,11 @@ This orchestrator will:
 
 ### Example Output
 
-After running all baselines, you'll see a summary table like this:
+After running all models, you'll see a summary table like this:
 
 **Spearman ρ (Test, Average Fold)**
 
-| Baseline | AC-SINS_pH7.4 | HIC | PR_CHO | Titer | Tm2 |
+| Model | AC-SINS_pH7.4 | HIC | PR_CHO | Titer | Tm2 |
 |---|---:|---:|---:|---:|---:|
 | esm2_ridge | 0.420 | 0.416 | 0.420 | 0.180 | -0.098 |
 | piggen | 0.388 | 0.346 | 0.424 | 0.238 | -0.119 |
@@ -97,20 +97,20 @@ Options:
 pixi run all                    # Full workflow (train + predict + eval)
 pixi run all-skip-train         # Skip training (use existing models)
 pixi run all-skip-eval          # Skip evaluation step
-python run_all_baselines.py --help  # See all options
+python run_all_models.py --help  # See all options
 ```
 
 You can customize behavior via config files in `configs/`:
 ```bash
-python run_all_baselines.py --config configs/custom.toml
+python run_all_models.py --config configs/custom.toml
 ```
 
 ## Repository Structure
 
 ```
 abdev-benchmark/
-├── baselines/              # Baseline models (each is a Pixi project)
-│   └── random_predictor/  # E.g. Random baseline (performance floor)
+├── models/              # Models (each is a Pixi project)
+│   └── random_predictor/  # E.g. Random model (performance floor)
 ├── libs/
 │   └── abdev_core/       # Shared utilities, base classes, and evaluation
 ├── configs/              # Configuration files for orchestrator
@@ -122,9 +122,9 @@ abdev-benchmark/
 └── pixi.toml            # Root environment with orchestrator dependencies
 ```
 
-## Available Baselines
+## Available Models
 
-| Baseline | Description | Trains Model | Data Source |
+| Model | Description | Trains Model | Data Source |
 |----------|-------------|--------------|-------------|
 | **tap_linear** | Ridge regression on TAP descriptors | Yes | TAP features |
 | **tap_single_features** | Individual TAP features as predictors | No | TAP features |
@@ -136,7 +136,7 @@ abdev-benchmark/
 | **deepviscosity** | Viscosity predictions | No | Tamarind |
 | **random_predictor** | Random predictions (baseline floor) | No | None |
 
-All baselines implement the `BaseModel` interface with standardized `train()` and `predict()` commands. See individual baseline READMEs for details.
+All models implement the `BaseModel` interface with standardized `train()` and `predict()` commands. See individual model READMEs for details.
 
 ## Predicted Properties
 
@@ -168,21 +168,21 @@ See `data/schema/README.md` for detailed format specifications.
 
 Prediction format validation is handled automatically by the orchestrator using `abdev_core.validate_prediction_format()`.
 
-## Adding a New Baseline
+## Adding a New Model
 
-All baselines must implement the `BaseModel` interface with `train()` and `predict()` methods.
+All models must implement the `BaseModel` interface with `train()` and `predict()` methods.
 
 ### Steps
 
 1. **Create directory structure:**
    ```bash
-   mkdir -p baselines/your_baseline/src/your_baseline
+   mkdir -p models/your_model/src/your_model
    ```
 
 2. **Create `pixi.toml`** with dependencies:
    ```toml
    [workspace]
-   name = "your-baseline"
+   name = "your-model"
    version = "0.1.0"
    channels = ["conda-forge"]
    platforms = ["linux-64", "osx-64", "osx-arm64"]
@@ -194,12 +194,12 @@ All baselines must implement the `BaseModel` interface with `train()` and `predi
    
    [pypi-dependencies]
    abdev-core = { path = "../../libs/abdev_core", editable = true }
-   your-baseline = { path = ".", editable = true }
+   your-model = { path = ".", editable = true }
    ```
 
 3. **Create `pyproject.toml`** for package metadata.
 
-4. **Implement `src/your_baseline/model.py`:**
+4. **Implement `src/your_model/model.py`:**
    ```python
    from pathlib import Path
    import pandas as pd
@@ -224,7 +224,7 @@ All baselines must implement the `BaseModel` interface with `train()` and `predi
            return df_with_predictions
    ```
 
-5. **Create `src/your_baseline/run.py`:**
+5. **Create `src/your_model/run.py`:**
    ```python
    from abdev_core import create_cli_app
    from .model import YourModel
@@ -235,7 +235,7 @@ All baselines must implement the `BaseModel` interface with `train()` and `predi
        app()
    ```
 
-6. **Create `src/your_baseline/__main__.py`:**
+6. **Create `src/your_model/__main__.py`:**
    ```python
    from .run import app
    if __name__ == "__main__":
@@ -244,37 +244,37 @@ All baselines must implement the `BaseModel` interface with `train()` and `predi
 
 7. **Add `README.md`** documenting your approach.
 
-8. **Test your baseline:**
+8. **Test your model:**
    ```bash
    # From repository root
-   python tests/test_baseline_contract.py --baseline your_baseline
+   python tests/test_model_contract.py --model your_model
    
    # Or test train/predict manually
-   cd baselines/your_baseline
+   cd models/your_model
    pixi install
-   pixi run python -m your_baseline train --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./test_run
-   pixi run python -m your_baseline predict --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./test_run --out-dir ./test_out
+   pixi run python -m your_model train --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./test_run
+   pixi run python -m your_model predict --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./test_run --out-dir ./test_out
    ```
 
-See `baselines/random_predictor/` for a complete minimal example.
+See `models/random_predictor/` for a complete minimal example.
 
 ## Development
 
-### Testing Baseline Contract Compliance
+### Testing Model Contract Compliance
 
-Validate that all baselines implement the train/predict contract correctly:
+Validate that all models implement the train/predict contract correctly:
 
 ```bash
 # Install dev environment dependencies (includes pytest)
 pixi install -e dev
 
-# Test all baselines
+# Test all models
 pixi run -e dev test-contract
 
 # Or run with options
-pixi run -e dev python tests/test_baseline_contract.py --baseline tap_linear  # Test specific baseline
-pixi run -e dev python tests/test_baseline_contract.py --skip-train           # Skip training step
-pixi run -e dev python tests/test_baseline_contract.py --help                 # See all options
+pixi run -e dev python tests/test_model_contract.py --model tap_linear  # Test specific model
+pixi run -e dev python tests/test_model_contract.py --skip-train           # Skip training step
+pixi run -e dev python tests/test_model_contract.py --help                 # See all options
 ```
 
 This test script validates:
@@ -283,7 +283,7 @@ This test script validates:
 - Output predictions follow the required CSV format
 - All required columns are present
 
-**Note:** The test script uses `pixi run` to activate each baseline's environment, matching how the orchestrator runs baselines.
+**Note:** The test script uses `pixi run` to activate each model's environment, matching how the orchestrator runs models.
 
 ## Citation
 
@@ -297,10 +297,10 @@ If you use this benchmark, please cite:
 
 - **Tamarind.bio**: Computed features for Aggrescan3D, AntiFold, BALM_Paired, DeepSP, DeepViscosity, Saprot, TEMPRO, TAP
 - **Nels Thorsteinsen**: MOE structure predictions
-- Contributors to individual baseline methods (see baseline READMEs)
+- Contributors to individual model methods (see model READMEs)
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-**Note:** Datasets and individual baseline implementations may have their own licenses and terms of use. Please refer to the specific documentation in each baseline directory and the `data/` directory for details.
+**Note:** Datasets and individual model implementations may have their own licenses and terms of use. Please refer to the specific documentation in each model directory and the `data/` directory for details.

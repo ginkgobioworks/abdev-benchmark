@@ -31,7 +31,7 @@ documentation of the originating sources of the `data/` directory for specific
 dataset licensing information.
 
 ### Baseline Models and External Code
-Individual baseline implementations (under `baselines/`) may incorporate or
+Individual baseline implementations (under `model/`) may incorporate or
 depend on third-party code, models, or methods that are subject to their own
 licenses and terms of use. Each baseline directory may contain its own LICENSE
 or README file specifying applicable terms. Users should review and comply with
