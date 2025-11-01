@@ -109,7 +109,7 @@ python run_all_models.py --config configs/custom.toml
 
 ```
 abdev-benchmark/
-├── models/              # Model models (each is a Pixi project)
+├── models/              # Models (each is a Pixi project)
 │   └── random_predictor/  # E.g. Random model (performance floor)
 ├── libs/
 │   └── abdev_core/       # Shared utilities, base classes, and evaluation
