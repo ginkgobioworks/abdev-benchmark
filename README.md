@@ -134,7 +134,7 @@ abdev-benchmark/
 | **antifold** | Antibody stability predictions | No | Tamarind |
 | **saprot_vh** | Protein language model features | No | Tamarind |
 | **deepviscosity** | Viscosity predictions | No | Tamarind |
-| **random_predictor** | Random predictions (model floor) | No | None |
+| **random_predictor** | Random predictions (baseline floor) | No | None |
 
 All models implement the `BaseModel` interface with standardized `train()` and `predict()` commands. See individual model READMEs for details.
 
