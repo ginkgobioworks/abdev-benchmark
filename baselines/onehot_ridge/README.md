@@ -42,7 +42,7 @@ VOCAB = [A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y, -]
 
 All concatenated VH+VL sequences must have identical lengths due to the AHo alignment. The resulting flattened one-hot encoding forms a fixed-length feature vector for each antibody:
 
-Feature length = sequence_length × 21 (sequence_length = 149 (vl) + 159 (vh) = 298)
+Feature length = sequence_length × 21; with sequence_length = 149 (vl) + 149 (vh) = 298)
 
 ---
 
@@ -66,8 +66,7 @@ For each developability property (e.g., HIC, Tm2, Titer):
 
 - Filter out samples with missing property values.  
 - Train a separate **Ridge regression** model (`alpha = 1.0`) on the one-hot encoded features.  
-- Save one model per property.  
-- Store encoder and sequence length for reproducibility.
+- Save one model per property.
 
 The Ridge regression minimizes the mean squared error (MSE) with L2 regularization:
 
@@ -84,7 +83,7 @@ where \( w \) are the model weights (interpretable coefficients for each amino a
 During prediction:
 
 1. Load trained Ridge models and encoder from disk.  
-2. Transform input sequences into one-hot encoded features using the stored encoder.  
+2. Transform input (aligned) sequences into one-hot encoded features using the stored encoder.  
 3. Predict values for each property.  
 4. Return a DataFrame containing:
    - `antibody_name`  
@@ -141,38 +140,11 @@ This automatically discovers and runs all baselines, including ESM2 Ridge, with 
 
 ---
 
-## Features Used
-
-- **Input features**: One-hot encoded amino acid identities (21-dimensional per residue).  
-- **Sequence alignment**: Concatenated `heavy_aligned_aho` and `light_aligned_aho` sequences.  
-- **Vocabulary**: 20 canonical amino acids + gap `'-'` token.  
-- **Output**: Scalar developability property predictions (HIC, Tm2, Titer, etc.).  
-- **No auxiliary features**: Unlike TAP or embedding-based models, this baseline uses only aligned sequence data.
-
----
-
-## Performance Considerations
-
-### Training Time
-
-- **Fast training**: ~1–3 seconds per 1000 samples on CPU.  
-- **Computation**: Simple linear regression (closed-form Ridge solution).  
-- **Feature construction**: Scales linearly with sequence length and sample size.  
-
-### Memory Usage
-
-- **Feature matrix**: Each sequence contributes `sequence_length × 21` features.  
-  - Example: 270 aligned positions → 5670 features per sequence.  
-- **Model size**: Each Ridge model stores one coefficient per feature (~a few MB).  
-- **No GPU memory usage**: Model is fully CPU-compatible and efficient.
-
----
-
 ## Model Architecture
 
 ### One-Hot Encoding
 
-- **Input dimension**: `sequence_length × 21`  
+- **Input dimension**: `aligned_sequence_length × 21`  
 - **Sequence composition**: Concatenated heavy and light chains (aligned AHo numbering).  
 - **Encoding method**: Dense one-hot encoding using scikit-learn’s `OneHotEncoder`.  
 
@@ -200,11 +172,6 @@ This automatically discovers and runs all baselines, including ESM2 Ridge, with 
 ---
 
 *This baseline emphasizes interpretability and reproducibility, providing a transparent linear foundation for comparing sequence-based developability predictors.*
-
-
-
-
-
 
 
 
