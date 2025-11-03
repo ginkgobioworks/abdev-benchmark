@@ -70,9 +70,7 @@ For each developability property (e.g., HIC, Tm2, Titer):
 
 The Ridge regression minimizes the mean squared error (MSE) with L2 regularization:
 
-\[
-\text{minimize}_{w} \|y - Xw\|^2 + \alpha \|w\|^2
-\]
+<img src="https://latex.codecogs.com/svg.image?\min_w\|y-Xw\|^2+\alpha\|w\|^2" alt="ridge regression equation" />
 
 where \( w \) are the model weights (interpretable coefficients for each amino acid–position pair).
 
