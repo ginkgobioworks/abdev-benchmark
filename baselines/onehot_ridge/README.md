@@ -19,7 +19,6 @@ While the One-Hot Ridge baseline provides interpretability and simplicity, it ha
  
 - **Linear assumption** — Ridge regression assumes a linear relationship between features and target properties, which may not hold for complex biophysical phenomena.  
 - **Limited expressiveness** — One-hot encoding treats each amino acid independently and cannot capture biochemical similarity (e.g., Leucine ≈ Isoleucine). 
-- **Alignment dependency** — Requires strictly aligned sequences; performance degrades if alignment quality is poor or gaps are inconsistent.  
 
 Despite these drawbacks, One-Hot Ridge serves as a **strong, interpretable baseline** — useful for benchmarking model behavior and verifying dataset consistency.
 
