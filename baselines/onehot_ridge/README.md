@@ -34,7 +34,7 @@ heavy_aligned_aho + light_aligned_aho → concatenated_sequence
 
 Each concatenated sequence is tokenized at the residue level:
 
-A A A C D E ... → ['A', 'A', 'A', 'C', 'D', 'E', ...]
+QVRLVE... → ['Q', 'V', 'R', 'L', 'V', 'E', ...]
 
 Each residue position is represented as a **one-hot vector** over a 21-character vocabulary:
 
