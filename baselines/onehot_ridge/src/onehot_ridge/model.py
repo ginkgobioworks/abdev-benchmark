@@ -161,7 +161,7 @@ class OneHotRidgeModel(BaseModel):
         print(f"[INFO] Feature matrix shape for prediction: {X.shape}\n")
 
         # --- Predict properties ---
-        df_output = df[["antibody_name", "heavy_aligned_aho", "light_aligned_aho"]].copy()
+        df_output = df[["antibody_name", "vh_protein_sequence", "vl_protein_sequence", "heavy_aligned_aho", "light_aligned_aho"]].copy()
 
         for property_name, model in models.items():
             preds = model.predict(X)
