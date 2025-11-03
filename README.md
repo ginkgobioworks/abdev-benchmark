@@ -84,6 +84,7 @@ After running all baselines, you'll see a summary table like this:
 |---|---:|---:|---:|---:|---:|
 | esm2_ridge | 0.420 | 0.416 | 0.420 | 0.180 | -0.098 |
 | piggen | 0.388 | 0.346 | 0.424 | 0.238 | -0.119 |
+| onehot_ridge | 0.230 | 0.233 | 0.204 | 0.193 | -0.006 |
 | tap_single_features | 0.327 | 0.231 | 0.074 | 0.126 | — |
 | tap_linear | 0.294 | 0.222 | 0.136 | 0.113 | -0.115 |
 | aggrescan3d | — | 0.404 | 0.112 | — | — |
