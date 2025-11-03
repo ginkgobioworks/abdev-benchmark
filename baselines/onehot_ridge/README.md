@@ -11,8 +11,6 @@ This baseline converts antibody sequences (aligned in the **AHo numbering scheme
 
 - **Interpretable** — Each amino acid position contributes linearly to the property prediction.  
 - **Simple & fast** — No embeddings or pretrained models are required.  
-- **Alignment-aware** — The AHo numbering ensures positional correspondence across antibodies.  
-- **Chain-aware** — VH and VL are concatenated directly to form a joint sequence representation.  
 - **Reproducible** — Deterministic encoding, no random initialization or stochastic training.  
 
 ### Why *Not* One-Hot Ridge?
