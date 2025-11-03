@@ -5,12 +5,12 @@ A benchmark suite for evaluating machine learning models on antibody biophysical
 ## Overview
 
 This repository provides:
-- **Models** for predicting antibody developability properties
+- **Baseline models** for predicting antibody developability properties
 - **Standardized evaluation** framework with consistent metrics
 - **Pre-computed features** from various computational tools
 - **Benchmark dataset** (GDPa1) with measured biophysical properties
 
-Each model is an isolated [Pixi](https://prefix.dev/) project with its own dependencies and lockfile, ensuring reproducibility.
+Each baseline is an isolated [Pixi](https://prefix.dev/) project with its own dependencies and lockfile, ensuring reproducibility.
 
 ## Quick Start
 
@@ -27,12 +27,12 @@ git clone <repository-url>
 cd abdev-benchmark
 ```
 
-### Running a Model
+### Running a Baseline
 
-Each model follows a standard train/predict workflow. For example, with TAP Linear:
+Each baseline follows a standard train/predict workflow. For example, with TAP Linear:
 
 ```bash
-cd models/tap_linear
+cd baselines/tap_linear
 pixi install
 
 # Train the model
@@ -53,21 +53,21 @@ pixi run python -m tap_linear predict \
   --out-dir ./outputs/heldout
 ```
 
-All models implement the same `BaseModel` interface with `train()` and `predict()` methods.
+All baselines implement the same `BaseModel` interface with `train()` and `predict()` methods.
 
 **Note:** Models train on ALL provided data. The orchestrator handles data splitting for cross-validation.
 
-### Running All Models
+### Running All Baselines
 
-To train, predict, and evaluate all models:
+To train, predict, and evaluate all baselines:
 
 ```bash
 pixi run all
 ```
 
 This orchestrator will:
-- Automatically discover all models (directories with `pixi.toml` in `models/`)
-- Install dependencies for each model
+- Automatically discover all baselines (directories with `pixi.toml` in `baselines/`)
+- Install dependencies for each baseline
 - Train models with 5-fold cross-validation on GDPa1
 - Generate predictions for both CV and heldout test sets
 - Evaluate predictions and compute metrics (Spearman, Top 10% Recall)
@@ -76,50 +76,42 @@ This orchestrator will:
 
 ### Example Output
 
-After running all models, you'll see a summary table like this:
+After running all baselines, you'll see a summary table like this:
 
-These results use the defined folds in the GDPa1 training set and present the 
-metrics of the corresponding test folds.
+**Spearman ρ (Test, Average Fold)**
 
-**Spearman ρ (Test folds of training set, Average Fold)**
-
-| Model               | AC-SINS_pH7.4 |   HIC  | PR_CHO | Titer |   Tm2  |
-|----------------------|---------------|--------|--------|--------|--------|
-| moe_baseline         | 0.464         | 0.685  | 0.451  | 0.215  | 0.118  |
-| esm2_tap_ridge       | 0.480         | 0.420  | 0.413  | 0.221  | 0.265  |
-| ablang2_elastic_net  | 0.509         | 0.461  | 0.362  | 0.356  | 0.101  |
-| esm2_tap_rf          | 0.339         | 0.310  | 0.327  | 0.223  | 0.303  |
-| esm2_ridge           | 0.420         | 0.416  | 0.420  | 0.180  | -0.098 |
-| deepsp_ridge         | 0.348         | 0.531  | 0.257  | 0.114  | 0.073  |
-| esm2_tap_xgb         | 0.304         | 0.262  | 0.256  | 0.147  | 0.328  |
-| piggen               | 0.388         | 0.346  | 0.424  | 0.238  | -0.119 |
-| tap_single_features  | 0.327         | 0.231  | 0.074  | 0.126  | —      |
-| tap_linear           | 0.294         | 0.222  | 0.136  | 0.113  | -0.115 |
-| aggrescan3d          | —             | 0.404  | 0.112  | —      | —      |
-| saprot_vh            | —             | —      | 0.289  | —      | 0.162  |
-| antifold             | —             | —      | —      | 0.194  | 0.084  |
-| deepviscosity        | —             | 0.176  | —      | —      | —      |
-| random_predictor     | -0.026        | 0.002  | -0.081 | 0.068  | -0.000 |
+| Baseline | AC-SINS_pH7.4 | HIC | PR_CHO | Titer | Tm2 |
+|---|---:|---:|---:|---:|---:|
+| esm2_ridge | 0.420 | 0.416 | 0.420 | 0.180 | -0.098 |
+| piggen | 0.388 | 0.346 | 0.424 | 0.238 | -0.119 |
+| onehot_ridge | 0.230 | 0.233 | 0.204 | 0.193 | -0.006 |
+| tap_single_features | 0.327 | 0.231 | 0.074 | 0.126 | — |
+| tap_linear | 0.294 | 0.222 | 0.136 | 0.113 | -0.115 |
+| aggrescan3d | — | 0.404 | 0.112 | — | — |
+| saprot_vh | — | — | 0.289 | — | 0.162 |
+| antifold | — | — | — | 0.194 | 0.084 |
+| deepviscosity | — | 0.176 | — | — | — |
+| random_predictor | -0.026 | 0.002 | -0.081 | 0.068 | -0.000 |
 
 Options:
 ```bash
 pixi run all                    # Full workflow (train + predict + eval)
 pixi run all-skip-train         # Skip training (use existing models)
 pixi run all-skip-eval          # Skip evaluation step
-python run_all_models.py --help  # See all options
+python run_all_baselines.py --help  # See all options
 ```
 
 You can customize behavior via config files in `configs/`:
 ```bash
-python run_all_models.py --config configs/custom.toml
+python run_all_baselines.py --config configs/custom.toml
 ```
 
 ## Repository Structure
 
 ```
 abdev-benchmark/
-├── models/              # Models (each is a Pixi project)
-│   └── random_predictor/  # E.g. Random model (performance floor)
+├── baselines/              # Baseline models (each is a Pixi project)
+│   └── random_predictor/  # E.g. Random baseline (performance floor)
 ├── libs/
 │   └── abdev_core/       # Shared utilities, base classes, and evaluation
 ├── configs/              # Configuration files for orchestrator
@@ -131,39 +123,21 @@ abdev-benchmark/
 └── pixi.toml            # Root environment with orchestrator dependencies
 ```
 
-## Available Models
+## Available Baselines
 
-| Model | Description | Trains Model | Data Source |
+| Baseline | Description | Trains Model | Data Source |
 |----------|-------------|--------------|-------------|
-| **moe_baseline** | Ridge/MLP on MOE molecular descriptors | Yes | MOE features |
-| **ablang2_elastic_net** | ElasticNet on AbLang2 paired embeddings | Yes | Sequences (AbLang2 model) |
-| **esm2_tap_ridge** | Ridge on ESM2-PCA + TAP + subtypes | Yes | Sequences (ESM2 model) + TAP features |
-| **esm2_tap_rf** | Random Forest on ESM2-PCA + TAP + subtypes | Yes | Sequences (ESM2 model) + TAP features |
-| **esm2_tap_xgb** | XGBoost on ESM2-PCA + TAP + subtypes | Yes | Sequences (ESM2 model) + TAP features |
-| **esm2_ridge** | Ridge regression on ESM2 embeddings | Yes | Sequences (ESM2 model) |
-| **deepsp_ridge** | Ridge regression on DeepSP spatial features computed on-the-fly | Yes | Sequences (DeepSP model) |
 | **tap_linear** | Ridge regression on TAP descriptors | Yes | TAP features |
-| **piggen** | Ridge regression on p-IgGen embeddings | Yes | Sequences (p-IgGen model) |
 | **tap_single_features** | Individual TAP features as predictors | No | TAP features |
+| **esm2_ridge** | Ridge regression on ESM2 embeddings | Yes | Sequences (ESM2 model) |
+| **piggen** | Ridge regression on p-IgGen embeddings | Yes | Sequences (p-IgGen model) |
 | **aggrescan3d** | Aggregation propensity from structure | No | Tamarind |
-| **antifold** | Antibody stability predictions | No | Tamarind (with AntiBodyBuilder3 predicted structures)|
+| **antifold** | Antibody stability predictions | No | Tamarind |
 | **saprot_vh** | Protein language model features | No | Tamarind |
 | **deepviscosity** | Viscosity predictions | No | Tamarind |
 | **random_predictor** | Random predictions (baseline floor) | No | None |
 
-All models implement the `BaseModel` interface with standardized `train()` and `predict()` commands. See individual model READMEs for details.
-
-## Available features in data/processed_features/
-
-| Baseline | Extra info |
-|----------|-------------|
-| **Tamarind models** | The models above were run on Tamarind.bio, using either VH/VL inputs or inputting predicted structures|
-| **AntiBodyBuilder3 predicted structures** | |
-| **MOE predicted structures** | MOE's antibody modeler takes the best matching framework in the PDB (%ID) and the most sequence similar template in the PDB for each CDR. It constructs a chimeric template from this combination of templates (filtering those that cause issues such as clash), then it makes the mutations with exhaustive sidechain packing and energy minimizes the model with Amber19 and a specific protocol to maximize reproducibility and preserve the experimental backbone coordinates. |
-
-
-
-
+All baselines implement the `BaseModel` interface with standardized `train()` and `predict()` commands. See individual baseline READMEs for details.
 
 ## Predicted Properties
 
@@ -195,21 +169,21 @@ See `data/schema/README.md` for detailed format specifications.
 
 Prediction format validation is handled automatically by the orchestrator using `abdev_core.validate_prediction_format()`.
 
-## Adding a New Model
+## Adding a New Baseline
 
-All models must implement the `BaseModel` interface with `train()` and `predict()` methods.
+All baselines must implement the `BaseModel` interface with `train()` and `predict()` methods.
 
 ### Steps
 
 1. **Create directory structure:**
    ```bash
-   mkdir -p models/your_model/src/your_model
+   mkdir -p baselines/your_baseline/src/your_baseline
    ```
 
 2. **Create `pixi.toml`** with dependencies:
    ```toml
    [workspace]
-   name = "your-model"
+   name = "your-baseline"
    version = "0.1.0"
    channels = ["conda-forge"]
    platforms = ["linux-64", "osx-64", "osx-arm64"]
@@ -221,12 +195,12 @@ All models must implement the `BaseModel` interface with `train()` and `predict(
    
    [pypi-dependencies]
    abdev-core = { path = "../../libs/abdev_core", editable = true }
-   your-model = { path = ".", editable = true }
+   your-baseline = { path = ".", editable = true }
    ```
 
 3. **Create `pyproject.toml`** for package metadata.
 
-4. **Implement `src/your_model/model.py`:**
+4. **Implement `src/your_baseline/model.py`:**
    ```python
    from pathlib import Path
    import pandas as pd
@@ -251,7 +225,7 @@ All models must implement the `BaseModel` interface with `train()` and `predict(
            return df_with_predictions
    ```
 
-5. **Create `src/your_model/run.py`:**
+5. **Create `src/your_baseline/run.py`:**
    ```python
    from abdev_core import create_cli_app
    from .model import YourModel
@@ -262,7 +236,7 @@ All models must implement the `BaseModel` interface with `train()` and `predict(
        app()
    ```
 
-6. **Create `src/your_model/__main__.py`:**
+6. **Create `src/your_baseline/__main__.py`:**
    ```python
    from .run import app
    if __name__ == "__main__":
@@ -271,37 +245,37 @@ All models must implement the `BaseModel` interface with `train()` and `predict(
 
 7. **Add `README.md`** documenting your approach.
 
-8. **Test your model:**
+8. **Test your baseline:**
    ```bash
    # From repository root
-   python tests/test_model_contract.py --model your_model
+   python tests/test_baseline_contract.py --baseline your_baseline
    
    # Or test train/predict manually
-   cd models/your_model
+   cd baselines/your_baseline
    pixi install
-   pixi run python -m your_model train --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./test_run
-   pixi run python -m your_model predict --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./test_run --out-dir ./test_out
+   pixi run python -m your_baseline train --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./test_run
+   pixi run python -m your_baseline predict --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./test_run --out-dir ./test_out
    ```
 
-See `models/random_predictor/` for a complete minimal example.
+See `baselines/random_predictor/` for a complete minimal example.
 
 ## Development
 
-### Testing Model Contract Compliance
+### Testing Baseline Contract Compliance
 
-Validate that all models implement the train/predict contract correctly:
+Validate that all baselines implement the train/predict contract correctly:
 
 ```bash
 # Install dev environment dependencies (includes pytest)
 pixi install -e dev
 
-# Test all models
+# Test all baselines
 pixi run -e dev test-contract
 
 # Or run with options
-pixi run -e dev python tests/test_model_contract.py --model tap_linear  # Test specific model
-pixi run -e dev python tests/test_model_contract.py --skip-train           # Skip training step
-pixi run -e dev python tests/test_model_contract.py --help                 # See all options
+pixi run -e dev python tests/test_baseline_contract.py --baseline tap_linear  # Test specific baseline
+pixi run -e dev python tests/test_baseline_contract.py --skip-train           # Skip training step
+pixi run -e dev python tests/test_baseline_contract.py --help                 # See all options
 ```
 
 This test script validates:
@@ -310,7 +284,7 @@ This test script validates:
 - Output predictions follow the required CSV format
 - All required columns are present
 
-**Note:** The test script uses `pixi run` to activate each model's environment, matching how the orchestrator runs models.
+**Note:** The test script uses `pixi run` to activate each baseline's environment, matching how the orchestrator runs baselines.
 
 ## Citation
 
@@ -324,10 +298,10 @@ If you use this benchmark, please cite:
 
 - **Tamarind.bio**: Computed features for Aggrescan3D, AntiFold, BALM_Paired, DeepSP, DeepViscosity, Saprot, TEMPRO, TAP
 - **Nels Thorsteinsen**: MOE structure predictions
-- Contributors to individual model methods (see model READMEs)
+- Contributors to individual baseline methods (see baseline READMEs)
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-**Note:** Datasets and individual model implementations may have their own licenses and terms of use. Please refer to the specific documentation in each model directory and the `data/` directory for details.
+**Note:** Datasets and individual baseline implementations may have their own licenses and terms of use. Please refer to the specific documentation in each baseline directory and the `data/` directory for details.
