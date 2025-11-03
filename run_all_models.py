@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""Orchestrate cross-validation training and evaluation for all model.
+"""Orchestrate cross-validation training and evaluation for all baselines.
 
 This script performs:
 1. 5-fold cross-validation training on GDPa1
 2. Prediction generation for CV and heldout sets
 3. Evaluation metric computation
 
-The orchestrator handles all CV logic, while model implement simple
+The orchestrator handles all CV logic, while baselines implement simple
 train/predict interfaces.
 
 Usage:
     pixi run all                    # Run with default config
     pixi run all-skip-train         # Skip training
-    python run_all_models.py --help  # See all options
-    python run_all_models.py --config configs/custom.toml
+    python run_all_baselines.py --help  # See all options
+    python run_all_baselines.py --config configs/custom.toml
 """
 
 import shutil
@@ -44,23 +44,23 @@ def load_config(config_path: Path) -> Dict:
     return toml.load(config_path)
 
 
-def discover_model(model_dir: Path, include: List[str], exclude: List[str]) -> List[str]:
-    """Discover valid model based on include/exclude filters."""
-    all_model = []
-    for model_path in model_dir.iterdir():
-        if model_path.is_dir() and (model_path / "pixi.toml").exists():
-            all_model.append(model_path.name)
+def discover_baselines(baselines_dir: Path, include: List[str], exclude: List[str]) -> List[str]:
+    """Discover valid baselines based on include/exclude filters."""
+    all_baselines = []
+    for baseline_path in baselines_dir.iterdir():
+        if baseline_path.is_dir() and (baseline_path / "pixi.toml").exists():
+            all_baselines.append(baseline_path.name)
     
     # Apply filters
     if include:
-        model = [b for b in all_model if b in include]
+        baselines = [b for b in all_baselines if b in include]
     else:
-        model = all_model
+        baselines = all_baselines
     
     if exclude:
-        model = [b for b in model if b not in exclude]
+        baselines = [b for b in baselines if b not in exclude]
     
-    return sorted(model)
+    return sorted(baselines)
 
 
 def run_command(cmd: List[str], cwd: Path, capture: bool = True) -> tuple[bool, str]:
@@ -80,7 +80,7 @@ def run_command(cmd: List[str], cwd: Path, capture: bool = True) -> tuple[bool, 
 
 
 def merge_cv_predictions(
-    model_name: str,
+    baseline_name: str,
     train_data_path: Path,
     pred_dir: Path,
     num_folds: int,
@@ -97,7 +97,7 @@ def merge_cv_predictions(
         # Collect all fold predictions
         fold_preds = []
         for fold in range(num_folds):
-            pred_file = pred_dir / f".tmp_cv/{model_name}/fold_{fold}/predictions.csv"
+            pred_file = pred_dir / f".tmp_cv/{baseline_name}/fold_{fold}/predictions.csv"
             if not pred_file.exists():
                 if verbose:
                     console.print(f"[yellow]Warning: Missing prediction file: {pred_file}[/yellow]")
@@ -126,7 +126,7 @@ def merge_cv_predictions(
         df_cv = df_cv.drop(columns=['_fold'])
         
         # Save merged predictions
-        output_file = pred_dir / f"GDPa1_cross_validation/{model_name}/predictions.csv"
+        output_file = pred_dir / f"GDPa1_cross_validation/{baseline_name}/predictions.csv"
         output_file.parent.mkdir(parents=True, exist_ok=True)
         df_cv.to_csv(output_file, index=False)
         
@@ -138,7 +138,7 @@ def merge_cv_predictions(
 
 
 def merge_cv_train_predictions(
-    model_name: str,
+    baseline_name: str,
     train_data_path: Path,
     pred_dir: Path,
     num_folds: int,
@@ -155,7 +155,7 @@ def merge_cv_train_predictions(
         # Collect all fold predictions
         fold_preds = []
         for fold in range(num_folds):
-            pred_file = pred_dir / f".tmp_cv/{model_name}/fold_{fold}/predictions.csv"
+            pred_file = pred_dir / f".tmp_cv/{baseline_name}/fold_{fold}/predictions.csv"
             if not pred_file.exists():
                 if verbose:
                     console.print(f"[yellow]Warning: Missing prediction file: {pred_file}[/yellow]")
@@ -184,7 +184,7 @@ def merge_cv_train_predictions(
         df_train = df_train.drop(columns=['_fold'])
         
         # Save merged predictions
-        output_file = pred_dir / f".tmp_cv_train/{model_name}/predictions.csv"
+        output_file = pred_dir / f".tmp_cv_train/{baseline_name}/predictions.csv"
         output_file.parent.mkdir(parents=True, exist_ok=True)
         df_train.to_csv(output_file, index=False)
         
@@ -218,100 +218,12 @@ def main(
         None, "--run-dir",
         help="Directory for model artifacts (overrides config)"
     ),
-    display_only: bool = typer.Option(
-        False, "--display-only",
-        help="Only display existing evaluation results"
-    ),
 ):
-    """Run all model with cross-validation and evaluation."""
+    """Run all baselines with cross-validation and evaluation."""
     
     # Load and merge config with CLI overrides
     script_dir = Path(__file__).parent
     cfg = load_config(script_dir / config)
-    
-    # Handle display-only mode
-    if display_only:
-        eval_dir = script_dir / cfg['paths']['evaluation_dir']
-        
-        if not eval_dir.exists():
-            console.print(f"[red]Evaluation directory not found: {eval_dir}[/red]")
-            sys.exit(1)
-        
-        # Load all evaluation results
-        metrics = {}
-        for eval_file in eval_dir.glob("*_cv.csv"):
-            model_name = eval_file.stem.replace("_cv", "")
-            df_metrics = pd.read_csv(eval_file)
-            # Filter to test split for summary
-            df_test = df_metrics[df_metrics['split'] == 'test']
-            if len(df_test) > 0:
-                metrics[model_name] = df_test
-        
-        if not metrics:
-            console.print("[yellow]No evaluation results found.[/yellow]")
-            sys.exit(0)
-        
-        # Organize metrics by model, assay, and metric type
-        spearman_by_model = {}
-        recall_by_model = {}
-        all_assays = set()
-        
-        for model_name, df_metrics in metrics.items():
-            # Filter to "average" fold for summary
-            df_summary = df_metrics[df_metrics['fold'] == 'average']
-            
-            if len(df_summary) > 0:
-                spearman_by_model[model_name] = {}
-                recall_by_model[model_name] = {}
-                
-                for _, row in df_summary.iterrows():
-                    assay = row['assay']
-                    all_assays.add(assay)
-                    spearman_by_model[model_name][assay] = f"{row['spearman']:.3f}"
-                    recall_by_model[model_name][assay] = f"{row['top_10_recall']:.3f}"
-        
-        # Sort assays
-        sorted_assays = sorted(all_assays)
-        
-        # Sort model by average Spearman (descending)
-        sorted_model = sorted(
-            spearman_by_model.keys(),
-            key=lambda b: np.mean([float(spearman_by_model[b].get(a, "0")) for a in sorted_assays]),
-            reverse=True
-        )
-        
-        # Create Spearman table
-        console.rule("[bold cyan]METRICS SUMMARY[/bold cyan]")
-        spearman_table = Table(show_header=True, header_style="bold cyan", title="Spearman ρ (Test, Average Fold)")
-        spearman_table.add_column("Model", style="cyan")
-        for assay in sorted_assays:
-            spearman_table.add_column(assay, justify="right", style="green")
-        
-        for model_name in sorted_model:
-            row_data = [model_name]
-            for assay in sorted_assays:
-                row_data.append(spearman_by_model[model_name].get(assay, "—"))
-            spearman_table.add_row(*row_data)
-        
-        console.print(spearman_table)
-        
-        # Create Top 10% Recall table
-        console.print()
-        recall_table = Table(show_header=True, header_style="bold yellow", title="Top 10% Recall (Test, Average Fold)")
-        recall_table.add_column("Model", style="cyan")
-        for assay in sorted_assays:
-            recall_table.add_column(assay, justify="right", style="yellow")
-        
-        for model_name in sorted_model:
-            row_data = [model_name]
-            for assay in sorted_assays:
-                row_data.append(recall_by_model[model_name].get(assay, "—"))
-            recall_table.add_row(*row_data)
-        
-        console.print(recall_table)
-        console.print(f"\n[dim]Note: Using 'average' fold and 'test' split. See {eval_dir} for per-fold/per-property/per-split results.[/dim]")
-        
-        sys.exit(0)
     
     # Override config with CLI arguments
     if skip_train is not None:
@@ -324,7 +236,7 @@ def main(
         cfg['paths']['run_dir'] = str(run_dir)
     
     # Setup paths (all relative to script_dir)
-    model_dir = script_dir / cfg['model']['model_dir']
+    baselines_dir = script_dir / cfg['baselines']['baselines_dir']
     train_data = script_dir / cfg['data']['train_file']
     test_data = script_dir / cfg['data']['test_file']
     run_dir = script_dir / cfg['paths']['run_dir']
@@ -336,15 +248,15 @@ def main(
     for directory in [run_dir, pred_dir, eval_dir, temp_dir]:
         directory.mkdir(parents=True, exist_ok=True)
     
-    # Discover model
-    model = discover_model(
-        model_dir,
-        cfg['model'].get('include', []),
-        cfg['model'].get('exclude', [])
+    # Discover baselines
+    baselines = discover_baselines(
+        baselines_dir,
+        cfg['baselines'].get('include', []),
+        cfg['baselines'].get('exclude', [])
     )
     
-    if not model:
-        console.print("[red]No model found![/red]")
+    if not baselines:
+        console.print("[red]No baselines found![/red]")
         sys.exit(1)
     
     # Print header
@@ -356,11 +268,11 @@ def main(
         mode_desc.append("Eval")
     
     console.print(Panel.fit(
-        f"[bold cyan]Running All Model[/bold cyan]\n\n"
+        f"[bold cyan]Running All Baselines[/bold cyan]\n\n"
         f"Config: {config}\n"
         f"Mode: {' + '.join(mode_desc)}\n"
-        f"Model: {len(model)} discovered\n"
-        f"  {', '.join(model)}\n\n"
+        f"Baselines: {len(baselines)} discovered\n"
+        f"  {', '.join(baselines)}\n\n"
         f"Run directory: {run_dir}",
         border_style="cyan"
     ))
@@ -371,7 +283,7 @@ def main(
         'failed_train': [],
         'failed_predict': [],
         'failed_eval': [],
-        'metrics': {}  # model -> metrics DataFrame
+        'metrics': {}  # baseline -> metrics DataFrame
     }
     
     num_folds = cfg['cross_validation']['num_folds']
@@ -394,20 +306,20 @@ def main(
         if verbose:
             console.print(f"[green]✓ Random folds generated and saved to {train_data_with_folds}[/green]")
     
-    # Process each model
-    for model_idx, model_name in enumerate(model, 1):
-        console.rule(f"[bold cyan][{model_idx}/{len(model)}] {model_name}[/bold cyan]")
+    # Process each baseline
+    for baseline_idx, baseline in enumerate(baselines, 1):
+        console.rule(f"[bold cyan][{baseline_idx}/{len(baselines)}] {baseline}[/bold cyan]")
         
-        model_dir_path = model_dir / model_name
-        model_module = model_name.replace('-', '_')
-        model_failed = False
+        baseline_dir = baselines_dir / baseline
+        baseline_module = baseline.replace('-', '_')
+        baseline_failed = False
         
         # Install dependencies
         console.print("  [dim]Installing dependencies...[/dim]")
-        success, _ = run_command(["pixi", "install"], model_dir_path, capture=not verbose)
+        success, _ = run_command(["pixi", "install"], baseline_dir, capture=not verbose)
         if not success:
             console.print("  [red]✗ Failed to install dependencies[/red]")
-            results['failed_train'].append(model_name)
+            results['failed_train'].append(baseline)
             continue
         if verbose:
             console.print("  [green]✓ Dependencies installed[/green]")
@@ -422,74 +334,74 @@ def main(
             # Train on folds != current
             if not cfg['execution']['skip_train']:
                 # Split data
-                fold_train_data = temp_dir / f"{model_name}_fold{fold}_train.csv"
+                fold_train_data = temp_dir / f"{baseline}_fold{fold}_train.csv"
                 try:
                     split_data_by_fold(train_data, fold, fold_col, fold_train_data)
                 except Exception as e:
                     console.print(f"    [red]✗ Failed to split data for fold {fold}: {e}[/red]")
-                    model_failed = True
+                    baseline_failed = True
                     break
                 
                 # Train model
-                fold_run_dir = run_dir / model_name / f"fold_{fold}"
+                fold_run_dir = run_dir / baseline / f"fold_{fold}"
                 cmd = [
-                    "pixi", "run", "python", "-m", model_module, "train",
+                    "pixi", "run", "python", "-m", baseline_module, "train",
                     "--data", str(fold_train_data),
                     "--run-dir", str(fold_run_dir),
                     "--seed", str(seed)
                 ]
-                success, output = run_command(cmd, model_dir_path, capture=not verbose)
+                success, output = run_command(cmd, baseline_dir, capture=not verbose)
                 
                 if not success:
                     console.print(f"    [red]✗ Training failed on fold {fold}[/red]")
                     if verbose:
                         console.print(f"    [dim]{output}[/dim]")
-                    model_failed = True
+                    baseline_failed = True
                     break
             
             # Predict on all data
-            fold_run_dir = run_dir / model_name / f"fold_{fold}"
-            fold_pred_dir = pred_dir / f".tmp_cv/{model_name}/fold_{fold}"
+            fold_run_dir = run_dir / baseline / f"fold_{fold}"
+            fold_pred_dir = pred_dir / f".tmp_cv/{baseline}/fold_{fold}"
             fold_pred_dir.mkdir(parents=True, exist_ok=True)
             
             cmd = [
-                "pixi", "run", "python", "-m", model_module, "predict",
+                "pixi", "run", "python", "-m", baseline_module, "predict",
                 "--data", str(train_data),
                 "--run-dir", str(fold_run_dir),
                 "--out-dir", str(fold_pred_dir)
             ]
-            success, output = run_command(cmd, model_dir_path, capture=not verbose)
+            success, output = run_command(cmd, baseline_dir, capture=not verbose)
             
             if not success:
                 console.print(f"    [red]✗ Predictions failed on fold {fold}[/red]")
                 if verbose:
                     console.print(f"    [dim]{output}[/dim]")
-                model_failed = True
+                baseline_failed = True
                 break
             
             if verbose:
                 console.print(f"    [green]✓ Fold {fold} predictions saved[/green]")
         
-        if model_failed:
-            results['failed_train'].append(model_name)
+        if baseline_failed:
+            results['failed_train'].append(baseline)
             continue
         
         # Merge CV predictions (test)
         if verbose:
             console.print("    Merging CV test predictions...")
-        success, cv_test_file = merge_cv_predictions(model_name, train_data, pred_dir, num_folds, fold_col, verbose)
+        success, cv_test_file = merge_cv_predictions(baseline, train_data, pred_dir, num_folds, fold_col, verbose)
         if not success:
             console.print("  [red]✗ Failed to merge CV test predictions[/red]")
-            results['failed_predict'].append(model_name)
+            results['failed_predict'].append(baseline)
             continue
         
         # Merge CV predictions (train)
         if verbose:
             console.print("    Merging CV train predictions...")
-        success, cv_train_file = merge_cv_train_predictions(model_name, train_data, pred_dir, num_folds, fold_col, verbose)
+        success, cv_train_file = merge_cv_train_predictions(baseline, train_data, pred_dir, num_folds, fold_col, verbose)
         if not success:
             console.print("  [red]✗ Failed to merge CV train predictions[/red]")
-            results['failed_predict'].append(model_name)
+            results['failed_predict'].append(baseline)
             continue
         
         console.print("  [green]✓ Cross-validation complete[/green]")
@@ -499,40 +411,51 @@ def main(
         
         # Train on all data
         if not cfg['execution']['skip_train']:
-            full_run_dir = run_dir / model_name / "full"
+            full_run_dir = run_dir / baseline / "full"
             cmd = [
-                "pixi", "run", "python", "-m", model_module, "train",
+                "pixi", "run", "python", "-m", baseline_module, "train",
                 "--data", str(train_data),
                 "--run-dir", str(full_run_dir),
                 "--seed", str(seed)
             ]
-            success, output = run_command(cmd, model_dir_path, capture=not verbose)
+            success, output = run_command(cmd, baseline_dir, capture=not verbose)
             
             if not success:
                 console.print("  [red]✗ Full training failed[/red]")
                 if verbose:
                     console.print(f"  [dim]{output}[/dim]")
-                results['failed_train'].append(model_name)
+                results['failed_train'].append(baseline)
                 continue
         
         # Predict on test set
-        full_run_dir = run_dir / model_name / "full"
-        test_pred_dir = pred_dir / f"heldout_test/{model_name}"
+        full_run_dir = run_dir / baseline / "full"
+        test_pred_dir = pred_dir / f"heldout_test/{baseline}"
         test_pred_dir.mkdir(parents=True, exist_ok=True)
+
+        # --- Use .pkl file only for OneHotRidgeModel baseline ---
+        if baseline == "onehot_ridge":
+            test_data_path = test_data.with_suffix(".pkl")  # e.g., ../../data/heldout-set-sequences.pkl
+            if not test_data_path.exists():
+                console.print(f"[red]✗ Expected pickle test file not found: {test_data_path}[/red]")
+                baseline_failed = True
+                continue
+            console.print(f"[cyan]Using pickle test file for OneHotRidgeModel: {test_data_path}[/cyan]")
+        else:
+            test_data_path = test_data  # default CSV for all other baselines
         
         cmd = [
-            "pixi", "run", "python", "-m", model_module, "predict",
-            "--data", str(test_data),
+            "pixi", "run", "python", "-m", baseline_module, "predict",
+            "--data", str(test_data_path),
             "--run-dir", str(full_run_dir),
             "--out-dir", str(test_pred_dir)
         ]
-        success, output = run_command(cmd, model_dir_path, capture=not verbose)
+        success, output = run_command(cmd, baseline_dir, capture=not verbose)
         
         if not success:
             console.print("  [red]✗ Test predictions failed[/red]")
             if verbose:
                 console.print(f"  [dim]{output}[/dim]")
-            results['failed_predict'].append(model_name)
+            results['failed_predict'].append(baseline)
             continue
         
         if verbose:
@@ -544,9 +467,9 @@ def main(
         if not cfg['execution']['skip_eval']:
             console.print("  [yellow]Evaluation[/yellow]")
             
-            cv_test_pred_file = pred_dir / f"GDPa1_cross_validation/{model_name}/predictions.csv"
-            cv_train_pred_file = pred_dir / f".tmp_cv_train/{model_name}/predictions.csv"
-            cv_eval_output = eval_dir / f"{model_name}_cv.csv"
+            cv_test_pred_file = pred_dir / f"GDPa1_cross_validation/{baseline}/predictions.csv"
+            cv_train_pred_file = pred_dir / f".tmp_cv_train/{baseline}/predictions.csv"
+            cv_eval_output = eval_dir / f"{baseline}_cv.csv"
             
             try:
                 # Evaluate test predictions
@@ -555,7 +478,7 @@ def main(
                 test_results_list = evaluate_model(
                     cv_test_pred_file,
                     train_data,
-                    model_name,
+                    baseline,
                     cfg['evaluation']['cv_dataset_name'],
                     fold_col=fold_col,
                     num_folds=num_folds,
@@ -568,7 +491,7 @@ def main(
                 train_results_list = evaluate_model(
                     cv_train_pred_file,
                     train_data,
-                    model_name,
+                    baseline,
                     cfg['evaluation']['cv_dataset_name'],
                     fold_col=fold_col,
                     num_folds=num_folds,
@@ -582,16 +505,16 @@ def main(
                 
                 # Store metrics for summary (test split only)
                 df_test_results = df_results[df_results['split'] == 'test']
-                results['metrics'][model_name] = df_test_results
+                results['metrics'][baseline] = df_test_results
                 
                 console.print("  [green]✓ Evaluation complete[/green]")
             except Exception as e:
                 console.print(f"  [red]✗ Evaluation failed: {e}[/red]")
-                results['failed_eval'].append(model_name)
+                results['failed_eval'].append(baseline)
                 continue
         
-        results['success'].append(model_name)
-        console.print(f"[bold green]✓ {model_name} complete[/bold green]\n")
+        results['success'].append(baseline)
+        console.print(f"[bold green]✓ {baseline} complete[/bold green]\n")
     
     # Cleanup
     if verbose:
@@ -609,86 +532,86 @@ def main(
     table.add_column("Success", justify="right", style="green")
     table.add_column("Failed", justify="right", style="red")
     
-    total_model = len(model)
+    total_baselines = len(baselines)
     train_failed = len(results['failed_train'])
     predict_failed = len(results['failed_predict'])
     eval_failed = len(results['failed_eval'])
     
     if not cfg['execution']['skip_train']:
-        table.add_row("Training", str(total_model - train_failed), str(train_failed))
+        table.add_row("Training", str(total_baselines - train_failed), str(train_failed))
     
-    table.add_row("Prediction", str(total_model - predict_failed), str(predict_failed))
+    table.add_row("Prediction", str(total_baselines - predict_failed), str(predict_failed))
     
     if not cfg['execution']['skip_eval']:
-        table.add_row("Evaluation", str(total_model - eval_failed), str(eval_failed))
+        table.add_row("Evaluation", str(total_baselines - eval_failed), str(eval_failed))
     
     console.print(table)
     
     # List failures if any
     if train_failed or predict_failed or eval_failed:
-        console.print("\n[bold red]Failed Model:[/bold red]")
-        for model_name in set(results['failed_train'] + results['failed_predict'] + results['failed_eval']):
-            console.print(f"  • {model_name}")
+        console.print("\n[bold red]Failed Baselines:[/bold red]")
+        for baseline in set(results['failed_train'] + results['failed_predict'] + results['failed_eval']):
+            console.print(f"  • {baseline}")
     
     # ===== METRICS SUMMARY =====
     if not cfg['execution']['skip_eval'] and results['metrics']:
         console.print("\n")
         console.rule("[bold cyan]METRICS SUMMARY[/bold cyan]")
         
-        # Organize metrics by model, assay, and metric type
-        spearman_by_model = {}
-        recall_by_model = {}
+        # Organize metrics by baseline, assay, and metric type
+        spearman_by_baseline = {}
+        recall_by_baseline = {}
         all_assays = set()
         
-        for model_name, df_metrics in results['metrics'].items():
+        for baseline_name, df_metrics in results['metrics'].items():
             # Filter to "average" fold and "test" split for summary
             df_summary = df_metrics[(df_metrics['fold'] == 'average') & (df_metrics['split'] == 'test')]
             
             if len(df_summary) > 0:
-                spearman_by_model[model_name] = {}
-                recall_by_model[model_name] = {}
+                spearman_by_baseline[baseline_name] = {}
+                recall_by_baseline[baseline_name] = {}
                 
                 for _, row in df_summary.iterrows():
                     assay = row['assay']
                     all_assays.add(assay)
-                    spearman_by_model[model_name][assay] = f"{row['spearman']:.3f}"
-                    recall_by_model[model_name][assay] = f"{row['top_10_recall']:.3f}"
+                    spearman_by_baseline[baseline_name][assay] = f"{row['spearman']:.3f}"
+                    recall_by_baseline[baseline_name][assay] = f"{row['top_10_recall']:.3f}"
         
         # Sort assays
         sorted_assays = sorted(all_assays)
         
-        # Sort model by average Spearman (descending)
-        sorted_model = sorted(
-            spearman_by_model.keys(),
-            key=lambda b: np.mean([float(spearman_by_model[b].get(a, "0")) for a in sorted_assays]),
+        # Sort baselines by average Spearman (descending)
+        sorted_baselines = sorted(
+            spearman_by_baseline.keys(),
+            key=lambda b: np.mean([float(spearman_by_baseline[b].get(a, "0")) for a in sorted_assays]),
             reverse=True
         )
         
         # Create Spearman table
-        spearman_table = Table(show_header=True, header_style="bold cyan", title="Spearman ρ (Test folds of training set, Average Fold)")
-        spearman_table.add_column("Model", style="cyan")
+        spearman_table = Table(show_header=True, header_style="bold cyan", title="Spearman ρ (Test, Average Fold)")
+        spearman_table.add_column("Baseline", style="cyan")
         for assay in sorted_assays:
             spearman_table.add_column(assay, justify="right", style="green")
         
-        for model_name in sorted_model:
-            row_data = [model_name]
+        for baseline in sorted_baselines:
+            row_data = [baseline]
             for assay in sorted_assays:
-                row_data.append(spearman_by_model[model_name].get(assay, "—"))
+                row_data.append(spearman_by_baseline[baseline].get(assay, "—"))
             spearman_table.add_row(*row_data)
         
         console.print(spearman_table)
         
         # Create Top 10% Recall table
         console.print()
-        recall_table = Table(show_header=True, header_style="bold yellow", title="Top 10% Recall (Test folds of training set, Average Fold)")
-        recall_table.add_column("Model", style="cyan")
+        recall_table = Table(show_header=True, header_style="bold yellow", title="Top 10% Recall (Test, Average Fold)")
+        recall_table.add_column("Baseline", style="cyan")
         for assay in sorted_assays:
             recall_table.add_column(assay, justify="right", style="yellow")
         
-        for model_name in sorted_model:
-            row_data = [model_name]
+        for baseline in sorted_baselines:
+            row_data = [baseline]
             for assay in sorted_assays:
-                row_data.append(recall_by_model[model_name].get(assay, "—"))
+                row_data.append(recall_by_baseline[baseline].get(assay, "—"))
             recall_table.add_row(*row_data)
         
         console.print(recall_table)
@@ -705,12 +628,13 @@ def main(
     total_failed = len(set(results['failed_train'] + results['failed_predict'] + results['failed_eval']))
     console.print()
     if total_failed > 0:
-        console.print(f"[red]✗ {total_failed}/{total_model} model(s) failed[/red]")
+        console.print(f"[red]✗ {total_failed}/{total_baselines} baseline(s) failed[/red]")
         sys.exit(1)
     else:
-        console.print(f"[green]✓ All {total_model} model completed successfully![/green]")
+        console.print(f"[green]✓ All {total_baselines} baselines completed successfully![/green]")
         sys.exit(0)
 
 
 if __name__ == "__main__":
     app()
+
