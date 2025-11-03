@@ -431,10 +431,21 @@ def main(
         full_run_dir = run_dir / baseline / "full"
         test_pred_dir = pred_dir / f"heldout_test/{baseline}"
         test_pred_dir.mkdir(parents=True, exist_ok=True)
+
+        # --- Use .pkl file only for OneHotRidgeModel baseline ---
+        if baseline == "onehot_ridge":
+            test_data_path = test_data.with_suffix(".pkl")  # e.g., ../../data/heldout-set-sequences.pkl
+            if not test_data_path.exists():
+                console.print(f"[red]✗ Expected pickle test file not found: {test_data_path}[/red]")
+                baseline_failed = True
+                continue
+            console.print(f"[cyan]Using pickle test file for OneHotRidgeModel: {test_data_path}[/cyan]")
+        else:
+            test_data_path = test_data  # default CSV for all other baselines
         
         cmd = [
             "pixi", "run", "python", "-m", baseline_module, "predict",
-            "--data", str(test_data),
+            "--data", str(test_data_path),
             "--run-dir", str(full_run_dir),
             "--out-dir", str(test_pred_dir)
         ]
