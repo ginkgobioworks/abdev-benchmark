@@ -71,6 +71,11 @@ class FeatureLoader:
         dfs = []
         for feature_path in sorted(feature_files):
             df = pd.read_csv(feature_path)
+            
+            # Normalize column names: rename 'name' to 'antibody_name' if needed
+            if 'name' in df.columns and 'antibody_name' not in df.columns:
+                df = df.rename(columns={'name': 'antibody_name'})
+            
             dfs.append(df)
         
         df_combined = pd.concat(dfs, ignore_index=False)
