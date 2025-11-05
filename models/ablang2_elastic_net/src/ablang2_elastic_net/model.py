@@ -142,33 +142,10 @@ class Ablang2ElasticNetModel(BaseModel):
             ])
 
             pipe.fit(Xp, yp)
-
-            # Fallback to true ridge if ENet is effectively zeroed or performs terribly
-            use_ridge = False
-            enet_fitted = pipe.named_steps["enet"]
-            coef = getattr(enet_fitted, "coef_", None)
-            if coef is None or np.allclose(coef, 0.0):
-                use_ridge = True
-            else:
-                # sanity check in-sample R2; if <= 0, try ridge
-                try:
-                    if len(yp) > 1 and r2_score(yp, pipe.predict(Xp)) <= 0:
-                        use_ridge = True
-                except Exception:
-                    pass
-
-            if use_ridge:
-                ridge = RidgeCV(alphas=np.logspace(-5, 3, 30), store_cv_values=False)
-                pipe = Pipeline([
-                    ("scaler", StandardScaler()),
-                    ("pca", PCA(n_components=pca_k, svd_solver="auto", whiten=False)),
-                    ("ridge", ridge),
-                ])
-                pipe.fit(Xp, yp)
-
+            
             models[prop] = pipe
 
-            # --- keep your small diagnostics ---
+            # Diagnostics
             try:
                 yhat = pipe.predict(Xp)
                 uniq = len(np.unique(np.round(yhat, 6)))
