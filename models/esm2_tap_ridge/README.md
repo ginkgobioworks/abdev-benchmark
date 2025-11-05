@@ -8,7 +8,6 @@ Ridge regression model on PCA-reduced ESM2 embeddings (640D → 50D) combined wi
 - **Antibody subtypes**: 5 dimensions
   - hc_subtype (one-hot): 3 features (IgG1, IgG2, IgG4)
   - lc_subtype (one-hot): 2 features (Kappa, Lambda)
-- **Total**: 60 features (vs ~197 training samples = 0.30:1 ratio)
 
 ## Model Architecture
 

@@ -8,7 +8,7 @@ XGBoost model on PCA-reduced ESM2 embeddings (640D → 50D) combined with TAP bi
 - **Antibody subtypes**: 5 dimensions
   - hc_subtype (one-hot): 3 features (IgG1, IgG2, IgG4)
   - lc_subtype (one-hot): 2 features (Kappa, Lambda)
-- **Total**: 60 features (vs ~197 training samples = 0.30:1 ratio)
+- **Total**: 60 features
 
 ## Anti-overfitting Hyperparameters 
 - `n_estimators=50` - Moderate boosting rounds (sweet spot between 30 and 100)
@@ -21,15 +21,6 @@ XGBoost model on PCA-reduced ESM2 embeddings (640D → 50D) combined with TAP bi
 - `PCA_components=50` - Dimensionality reduction retaining ~93% variance
 - `reg_lambda=30` - Strong L2 regularization
 
-**Rationale**: V1 (100 rounds, depth 4) severely overfit. V2 (30 rounds, depth 2) prevented overfitting but was too conservative. V3 finds the sweet spot with moderate settings + early stopping for adaptive regularization.
-
-## XGBoost vs Random Forest
-
-XGBoost uses gradient boosting (sequential tree building) rather than Random Forest's bagging (parallel trees). Key advantages:
-- Built-in regularization (L1/L2)
-- More efficient with fewer trees
-- Better handling of feature interactions
-- Often superior performance on structured data
 
 ## Usage
 ```bash

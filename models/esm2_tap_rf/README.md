@@ -1,6 +1,6 @@
 # ESM2 + TAP Random Forest Model
 
-Random Forest model on PCA-reduced ESM2 embeddings (640D → 50D) combined with TAP biophysical features and antibody subtype information.
+Random Forest model on PCA-reduced ESM2 embeddings combined with TAP biophysical features and antibody subtype information.
 
 ## Features
 - **ESM2-PCA**: 50 dimensions (from ESM2-t6-8M embeddings, retains ~93% variance)
@@ -8,7 +8,7 @@ Random Forest model on PCA-reduced ESM2 embeddings (640D → 50D) combined with 
 - **Antibody subtypes**: 5 dimensions
   - hc_subtype (one-hot): 3 features (IgG1, IgG2, IgG4)
   - lc_subtype (one-hot): 2 features (Kappa, Lambda)
-- **Total**: 60 features (vs ~197 training samples = 0.30:1 ratio)
+- **Total**: 60 features
 
 ## Anti-overfitting Hyperparameters
 - `n_estimators=100` - Moderate number of trees
@@ -17,8 +17,6 @@ Random Forest model on PCA-reduced ESM2 embeddings (640D → 50D) combined with 
 - `min_samples_leaf=10` - Moderate leaf size
 - `PCA_components=50` - Dimensionality reduction retaining ~93% variance
 - `max_features='sqrt'` - Feature bagging
-
-**Performance**: Achieves good Tm2 performance 
 
 ## Usage
 ```bash
