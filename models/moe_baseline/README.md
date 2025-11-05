@@ -142,6 +142,6 @@ Predictions are written to `<out-dir>/predictions.csv` with columns:
 
 ## References
 
-- **MOE descriptors**: Nels Thorsteinsen (Tamarind.bio)
+- **MOE descriptors**: Nels Thorsteinsen
 - **Stabl selection**: Hédou et al. (2024), "Block HSIC Lasso: model-free biomarker detection for ultra-high dimensional data", Nature Biotechnology
 - **GDPa1 dataset**: [ginkgo-datapoints/GDPa1](https://huggingface.co/datasets/ginkgo-datapoints/GDPa1)
