@@ -142,7 +142,7 @@ class Ablang2ElasticNetModel(BaseModel):
             ])
 
             pipe.fit(Xp, yp)
-            
+
             models[prop] = pipe
 
             # Diagnostics
@@ -151,11 +151,13 @@ class Ablang2ElasticNetModel(BaseModel):
                 uniq = len(np.unique(np.round(yhat, 6)))
                 std  = float(np.std(yhat, ddof=1)) if len(yhat) > 1 else 0.0
                 r2   = r2_score(yp, yhat) if len(yp) > 1 else float("nan")
-                head = "ridge" if "ridge" in pipe.named_steps else "enet"
-                chosen_alpha = (pipe.named_steps["ridge"].alpha_
-                                if head == "ridge" else getattr(enet_fitted, "alpha_", None))
-                chosen_l1 = (None if head == "ridge" else getattr(enet_fitted, "l1_ratio_", None))
-                n_iter    = (None if head == "ridge" else getattr(enet_fitted, "n_iter_", None))
+                enet_fitted = pipe.named_steps["enet"]
+
+                chosen_alpha = getattr(enet_fitted, "alpha_", None)
+                chosen_l1 = getattr(enet_fitted, "l1_ratio_", None)
+                n_iter = getattr(enet_fitted, "n_iter_", None)
+                head =  "enet"
+                
                 print(f"[fit] {prop}: head={head} alpha={chosen_alpha} l1={chosen_l1} n_iter={n_iter} | "
                     f"uniq={uniq:4d} std={std:.6g} R2={r2:.4f} n={len(yp)}")
             except Exception as _diag_err:
