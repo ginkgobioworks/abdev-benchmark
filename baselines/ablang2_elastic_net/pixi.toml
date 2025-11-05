@@ -1,5 +1,5 @@
 [workspace]
-name = "ablang2_elastic_net"
+name = "ablang2-elastic-net"
 version = "0.1.0"
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64"]
@@ -15,7 +15,7 @@ typer = ">=0.9"
 torch = {version = ">=2.2,<3.0"}             
 ablang2 = "*"                                
 abdev-core = { path = "../../libs/abdev_core", editable = true }
-ablang-ridge = { path = ".", editable = true }
+ablang2-elastic-net = { path = ".", editable = true }
 
 [environments]
 default = []

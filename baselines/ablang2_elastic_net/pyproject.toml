@@ -1,15 +1,20 @@
-[project]
-name = "ablang2_elastic_net"
-version = "0.1.0"
-description = "ElasticNet regression on AbLang2 paired (VH|VL) mean-pooled embeddings"
-requires-python = ">=3.11"
-
-[project.urls]
-Repository = "https://github.com/ginkgobioworks/abdev-benchmark"
-
 [build-system]
-requires = ["setuptools>=67", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.package-data]
-"ablang_ridge" = ["*.txt", "*.json"]
+[project]
+name = "ablang2-elastic-net"
+version = "0.1.0"
+description = "AbLang2 embeddings + ElasticNet"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "numpy",
+  "pandas",
+  "scikit-learn>=1.2",
+  "torch",        
+  "ablang2",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
