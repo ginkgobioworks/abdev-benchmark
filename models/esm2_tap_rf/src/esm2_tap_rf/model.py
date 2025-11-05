@@ -19,13 +19,7 @@ TAP_FEATURE_NAMES = ["SFvCSP", "PSH", "PPC", "PNC", "CDR Length"]
 class ESM2TapRFModel(BaseModel):
     """Random Forest model on PCA-reduced ESM2 embeddings + TAP + subtype features.
 
-    This model addresses overfitting in high-dimensional embedding spaces by:
-    1. Reducing ESM2 embeddings from 640D to 50D using PCA (retains ~93% variance)
-    2. Combining with 5 TAP biophysical features
-    3. Adding antibody subtype features (hc_subtype, lc_subtype)
-    4. Using Random Forest with strong anti-overfitting hyperparameters
-
-    Key anti-overfitting strategies (Version 2):
+    Key anti-overfitting strategies:
     - PCA dimensionality reduction (640 → 50)
     - Moderate number of trees (100)
     - Moderate depth trees (max_depth=5)
@@ -38,9 +32,7 @@ class ESM2TapRFModel(BaseModel):
     - TAP features: 5 dimensions
     - hc_subtype (one-hot): 3 dimensions (IgG1, IgG2, IgG4)
     - lc_subtype (one-hot): 2 dimensions (Kappa, Lambda)
-    - Total: 60 dimensions (vs 197 training samples = 0.30:1 ratio)
 
-    Achieves excellent Tm2 performance (test ρ=0.30 vs Ridge -0.10, +0.40 improvement!)
     """
 
     # ESM2 configuration
