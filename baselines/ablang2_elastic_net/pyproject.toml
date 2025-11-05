@@ -1,7 +1,7 @@
 [project]
-name = "ablang-ridge"
+name = "ablang2_elastic_net"
 version = "0.1.0"
-description = "Ridge on AbLang2 embeddings baseline for ABDEV"
+description = "ElasticNet regression on AbLang2 paired (VH|VL) mean-pooled embeddings"
 requires-python = ">=3.11"
 
 [project.urls]
