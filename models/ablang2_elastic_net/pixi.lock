@@ -509,7 +509,7 @@ packages:
 - pypi: ./
   name: ablang2-elastic-net
   version: 0.1.0
-  sha256: 1c01ed6fd5bd0c0f74529fac3384a6b5755e2598c457232344521ff1f72e343d
+  sha256: f12f8d8e2232b7f3a2a52c53b91a9a46794dea1ca5f82e553b29ef097b9d19d4
   requires_dist:
   - numpy
   - pandas
