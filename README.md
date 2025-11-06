@@ -82,9 +82,12 @@ After running all models, you'll see a summary table like this:
 
 | Model | AC-SINS_pH7.4 | HIC | PR_CHO | Titer | Tm2 |
 |---|---:|---:|---:|---:|---:|
+| esm2_tap_ridge | 0.480 | 0.420 | 0.413 | 0.221 | 0.265 |
 | esm2_ridge | 0.420 | 0.416 | 0.420 | 0.180 | -0.098 |
 | piggen | 0.388 | 0.346 | 0.424 | 0.238 | -0.119 |
+| esm2_tap_rf | 0.340 | 0.309 | 0.327 | 0.224 | 0.303 |
 | tap_single_features | 0.327 | 0.231 | 0.074 | 0.126 | — |
+| esm2_tap_xgb | 0.323 | 0.280 | 0.284 | 0.099 | 0.269 |
 | tap_linear | 0.294 | 0.222 | 0.136 | 0.113 | -0.115 |
 | aggrescan3d | — | 0.404 | 0.112 | — | — |
 | saprot_vh | — | — | 0.289 | — | 0.162 |

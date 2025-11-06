@@ -1,0 +1,31 @@
+[workspace]
+name = "esm2_tap_ridge"
+version = "0.1.0"
+description = "ESM2 + TAP Ridge - Ridge regression on PCA-reduced ESM2 embeddings + TAP features"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64"]
+
+[dependencies]
+python = "3.11.*"
+numpy = ">=1.24"
+pandas = ">=2.0"
+scikit-learn = ">=1.3"
+typer = ">=0.9"
+
+[pypi-dependencies]
+abdev-core = { path = "../../libs/abdev_core", editable = true }
+esm2_tap_ridge = { path = ".", editable = true }
+transformers = ">=4.30"
+torch = ">=2.0"
+
+[environments]
+default = []
+dev = ["dev"]
+
+[feature.dev.dependencies]
+pytest = ">=7.0"
+ruff = ">=0.1"
+
+[feature.dev.tasks]
+lint = "ruff check src && ruff format --check src"
+test = "pytest tests -v"
