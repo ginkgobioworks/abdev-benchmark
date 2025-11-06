@@ -131,12 +131,24 @@ abdev-benchmark/
 | **esm2_ridge** | Ridge regression on ESM2 embeddings | Yes | Sequences (ESM2 model) |
 | **piggen** | Ridge regression on p-IgGen embeddings | Yes | Sequences (p-IgGen model) |
 | **aggrescan3d** | Aggregation propensity from structure | No | Tamarind |
-| **antifold** | Antibody stability predictions | No | Tamarind |
+| **antifold** | Antibody stability predictions | No | Tamarind (with AntiBodyBuilder3 predicted structures)|
 | **saprot_vh** | Protein language model features | No | Tamarind |
 | **deepviscosity** | Viscosity predictions | No | Tamarind |
 | **random_predictor** | Random predictions (baseline floor) | No | None |
 
 All models implement the `BaseModel` interface with standardized `train()` and `predict()` commands. See individual model READMEs for details.
+
+## Available features in data/processed_features/
+
+| Baseline | Extra info |
+|----------|-------------|
+| **Tamarind models** | The models above were run on Tamarind.bio, using either VH/VL inputs or inputting predicted structures|
+| **AntiBodyBuilder3 predicted structures** | |
+| **MOE predicted structures** | MOE's antibody modeler takes the best matching framework in the PDB (%ID) and the most sequence similar template in the PDB for each CDR. It constructs a chimeric template from this combination of templates (filtering those that cause issues such as clash), then it makes the mutations with exhaustive sidechain packing and energy minimizes the model with Amber19 and a specific protocol to maximize reproducibility and preserve the experimental backbone coordinates. |
+
+
+
+
 
 ## Predicted Properties
 
