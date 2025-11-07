@@ -218,12 +218,100 @@ def main(
         None, "--run-dir",
         help="Directory for model artifacts (overrides config)"
     ),
+    display_only: bool = typer.Option(
+        False, "--display-only",
+        help="Only display existing evaluation results"
+    ),
 ):
     """Run all model with cross-validation and evaluation."""
     
     # Load and merge config with CLI overrides
     script_dir = Path(__file__).parent
     cfg = load_config(script_dir / config)
+    
+    # Handle display-only mode
+    if display_only:
+        eval_dir = script_dir / cfg['paths']['evaluation_dir']
+        
+        if not eval_dir.exists():
+            console.print(f"[red]Evaluation directory not found: {eval_dir}[/red]")
+            sys.exit(1)
+        
+        # Load all evaluation results
+        metrics = {}
+        for eval_file in eval_dir.glob("*_cv.csv"):
+            model_name = eval_file.stem.replace("_cv", "")
+            df_metrics = pd.read_csv(eval_file)
+            # Filter to test split for summary
+            df_test = df_metrics[df_metrics['split'] == 'test']
+            if len(df_test) > 0:
+                metrics[model_name] = df_test
+        
+        if not metrics:
+            console.print("[yellow]No evaluation results found.[/yellow]")
+            sys.exit(0)
+        
+        # Organize metrics by model, assay, and metric type
+        spearman_by_model = {}
+        recall_by_model = {}
+        all_assays = set()
+        
+        for model_name, df_metrics in metrics.items():
+            # Filter to "average" fold for summary
+            df_summary = df_metrics[df_metrics['fold'] == 'average']
+            
+            if len(df_summary) > 0:
+                spearman_by_model[model_name] = {}
+                recall_by_model[model_name] = {}
+                
+                for _, row in df_summary.iterrows():
+                    assay = row['assay']
+                    all_assays.add(assay)
+                    spearman_by_model[model_name][assay] = f"{row['spearman']:.3f}"
+                    recall_by_model[model_name][assay] = f"{row['top_10_recall']:.3f}"
+        
+        # Sort assays
+        sorted_assays = sorted(all_assays)
+        
+        # Sort model by average Spearman (descending)
+        sorted_model = sorted(
+            spearman_by_model.keys(),
+            key=lambda b: np.mean([float(spearman_by_model[b].get(a, "0")) for a in sorted_assays]),
+            reverse=True
+        )
+        
+        # Create Spearman table
+        console.rule("[bold cyan]METRICS SUMMARY[/bold cyan]")
+        spearman_table = Table(show_header=True, header_style="bold cyan", title="Spearman ρ (Test, Average Fold)")
+        spearman_table.add_column("Model", style="cyan")
+        for assay in sorted_assays:
+            spearman_table.add_column(assay, justify="right", style="green")
+        
+        for model_name in sorted_model:
+            row_data = [model_name]
+            for assay in sorted_assays:
+                row_data.append(spearman_by_model[model_name].get(assay, "—"))
+            spearman_table.add_row(*row_data)
+        
+        console.print(spearman_table)
+        
+        # Create Top 10% Recall table
+        console.print()
+        recall_table = Table(show_header=True, header_style="bold yellow", title="Top 10% Recall (Test, Average Fold)")
+        recall_table.add_column("Model", style="cyan")
+        for assay in sorted_assays:
+            recall_table.add_column(assay, justify="right", style="yellow")
+        
+        for model_name in sorted_model:
+            row_data = [model_name]
+            for assay in sorted_assays:
+                row_data.append(recall_by_model[model_name].get(assay, "—"))
+            recall_table.add_row(*row_data)
+        
+        console.print(recall_table)
+        console.print(f"\n[dim]Note: Using 'average' fold and 'test' split. See {eval_dir} for per-fold/per-property/per-split results.[/dim]")
+        
+        sys.exit(0)
     
     # Override config with CLI arguments
     if skip_train is not None:
