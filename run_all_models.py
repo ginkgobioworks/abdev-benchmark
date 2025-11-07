@@ -577,7 +577,7 @@ def main(
         )
         
         # Create Spearman table
-        spearman_table = Table(show_header=True, header_style="bold cyan", title="Spearman ρ (Test, Average Fold)")
+        spearman_table = Table(show_header=True, header_style="bold cyan", title="Spearman ρ (Test folds of training set, Average Fold)")
         spearman_table.add_column("Model", style="cyan")
         for assay in sorted_assays:
             spearman_table.add_column(assay, justify="right", style="green")
@@ -592,7 +592,7 @@ def main(
         
         # Create Top 10% Recall table
         console.print()
-        recall_table = Table(show_header=True, header_style="bold yellow", title="Top 10% Recall (Test, Average Fold)")
+        recall_table = Table(show_header=True, header_style="bold yellow", title="Top 10% Recall (Test folds of training set, Average Fold)")
         recall_table.add_column("Model", style="cyan")
         for assay in sorted_assays:
             recall_table.add_column(assay, justify="right", style="yellow")
