@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ablang2-elastic-net"
+version = "0.1.0"
+description = "AbLang2 embeddings + ElasticNet"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "numpy",
+  "pandas",
+  "scikit-learn>=1.2",
+  "torch",        
+  "ablang2",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

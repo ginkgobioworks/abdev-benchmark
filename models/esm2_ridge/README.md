@@ -143,7 +143,7 @@ This automatically discovers and runs all model, including ESM2 Ridge, with 5-fo
 - **Output**: Scalar property predictions
 - **Training**: One model per property
 
-## Comparison to Other Model
+## Comparison to Other Models
 
 ### vs. p-IgGen
 

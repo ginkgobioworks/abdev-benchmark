@@ -46,7 +46,7 @@ python -m random_predictor predict \
 
 - **Reproducible**: Uses a fixed random seed for consistent results
 - **Property-aware**: Generates predictions within realistic ranges based on training data
-- **Standard Interface**: Implements the BaseModel contract like all other model
+- **Standard Interface**: Implements the BaseModel contract like all other models
 
 ## Performance Expectations
 

@@ -87,10 +87,10 @@ Output directories (relative to repository root unless absolute):
 - `temp_dir` - Temporary files, auto-cleaned (default: `.tmp_cv_splits`)
 
 ### `[model]`
-Baseline selection:
+Model selection:
 - `model_dir` - Directory containing model (default: `model`)
-- `include` - List of baseline names to run (empty = discover all)
-- `exclude` - List of baseline names to skip (default: empty)
+- `include` - List of model names to run (empty = discover all)
+- `exclude` - List of model names to skip (default: empty)
 
 ### `[execution]`
 Execution control:
