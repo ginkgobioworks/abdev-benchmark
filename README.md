@@ -80,22 +80,23 @@ After running all models, you'll see a summary table like this:
 
 **Spearman ρ (Test, Average Fold)**
 
-| Model | AC-SINS_pH7.4 | HIC | PR_CHO | Titer | Tm2 |
-|---|---|---|---|---|---|
-| moe_baseline | 0.464 | 0.685 | 0.451 | 0.215 | 0.118 |
-| esm2_tap_ridge | 0.480 | 0.420 | 0.413 | 0.221 | 0.265 |
-| ablang2_elastic_net | 0.509 | 0.461 | 0.362 | 0.356 | 0.101 |
-| esm2_tap_rf | 0.339 | 0.310 | 0.327 | 0.223 | 0.303 |
-| esm2_ridge | 0.420 | 0.416 | 0.420 | 0.180 | -0.098 |
-| esm2_tap_xgb | 0.304 | 0.262 | 0.256 | 0.147 | 0.328 |
-| piggen | 0.388 | 0.346 | 0.424 | 0.238 | -0.119 |
-| tap_single_features | 0.327 | 0.231 | 0.074 | 0.126 | — |
-| tap_linear | 0.294 | 0.222 | 0.136 | 0.113 | -0.115 |
-| aggrescan3d | — | 0.404 | 0.112 | — | — |
-| saprot_vh | — | — | 0.289 | — | 0.162 |
-| antifold | — | — | — | 0.194 | 0.084 |
-| deepviscosity | — | 0.176 | — | — | — |
-| random_predictor | -0.026 | 0.002 | -0.081 | 0.068 | -0.000 |
+| Model               | AC-SINS_pH7.4 |   HIC  | PR_CHO | Titer |   Tm2  |
+|----------------------|---------------|--------|--------|--------|--------|
+| moe_baseline         | 0.464         | 0.685  | 0.451  | 0.215  | 0.118  |
+| esm2_tap_ridge       | 0.480         | 0.420  | 0.413  | 0.221  | 0.265  |
+| ablang2_elastic_net  | 0.509         | 0.461  | 0.362  | 0.356  | 0.101  |
+| esm2_tap_rf          | 0.339         | 0.310  | 0.327  | 0.223  | 0.303  |
+| esm2_ridge           | 0.420         | 0.416  | 0.420  | 0.180  | -0.098 |
+| deepsp_ridge         | 0.348         | 0.531  | 0.257  | 0.114  | 0.073  |
+| esm2_tap_xgb         | 0.304         | 0.262  | 0.256  | 0.147  | 0.328  |
+| piggen               | 0.388         | 0.346  | 0.424  | 0.238  | -0.119 |
+| tap_single_features  | 0.327         | 0.231  | 0.074  | 0.126  | —      |
+| tap_linear           | 0.294         | 0.222  | 0.136  | 0.113  | -0.115 |
+| aggrescan3d          | —             | 0.404  | 0.112  | —      | —      |
+| saprot_vh            | —             | —      | 0.289  | —      | 0.162  |
+| antifold             | —             | —      | —      | 0.194  | 0.084  |
+| deepviscosity        | —             | 0.176  | —      | —      | —      |
+| random_predictor     | -0.026        | 0.002  | -0.081 | 0.068  | -0.000 |
 
 Options:
 ```bash
@@ -137,6 +138,7 @@ abdev-benchmark/
 | **esm2_tap_rf** | Random Forest on ESM2-PCA + TAP + subtypes | Yes | Sequences (ESM2 model) + TAP features |
 | **esm2_tap_xgb** | XGBoost on ESM2-PCA + TAP + subtypes | Yes | Sequences (ESM2 model) + TAP features |
 | **esm2_ridge** | Ridge regression on ESM2 embeddings | Yes | Sequences (ESM2 model) |
+| **deepsp_ridge** | Ridge regression on DeepSP spatial features computed on-the-fly | Yes | Sequences (DeepSP model) |
 | **tap_linear** | Ridge regression on TAP descriptors | Yes | TAP features |
 | **piggen** | Ridge regression on p-IgGen embeddings | Yes | Sequences (p-IgGen model) |
 | **tap_single_features** | Individual TAP features as predictors | No | TAP features |

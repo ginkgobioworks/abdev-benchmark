@@ -23,6 +23,7 @@ abdev-core = { path = "libs/abdev_core", editable = true }
 all = "python run_all_models.py"
 all-skip-train = "python run_all_models.py --skip-train"
 all-skip-eval = "python run_all_models.py --skip-eval"
+display-evals = "python run_all_models.py --display-only"
 
 [environments]
 default = []
