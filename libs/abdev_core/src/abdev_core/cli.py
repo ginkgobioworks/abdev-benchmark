@@ -58,7 +58,7 @@ def create_cli_app(model_class: type[BaseModel], model_name: str) -> typer.Typer
     
     @app.command()
     def predict(
-        data: Path = typer.Option(..., help="Path to input data (.csv or .pkl)"),
+        data: Path = typer.Option(..., help="Path to input data CSV"),
         run_dir: Path = typer.Option(..., help="Directory containing model artifacts"),
         out_dir: Path = typer.Option(..., help="Directory to write predictions.csv"),
     ):
@@ -70,14 +70,7 @@ def create_cli_app(model_class: type[BaseModel], model_name: str) -> typer.Typer
         out_dir.mkdir(parents=True, exist_ok=True)
         
         typer.echo(f"Loading data from {data}...")
-        # --- Load CSV or PKL automatically ---
-        if data.suffix == ".pkl":
-            df = pd.read_pickle(data)
-        elif data.suffix == ".csv":
-            df = pd.read_csv(data)
-        else:
-            typer.echo(f"Error: Unsupported file format '{data.suffix}'. Use .csv or .pkl", err=True)
-            raise typer.Exit(1)
+        df = pd.read_csv(data)
         
         typer.echo(f"Generating predictions with {model_name}...")
         model = model_class()

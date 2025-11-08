@@ -147,19 +147,6 @@ def test_baseline_predict(
     dataset_name = "training" if is_training_data else "heldout"
     
     print(f"  Predicting on {dataset_name} data...")
-
-    if not is_training_data and baseline_name == "onehot_ridge":
-        print(f"[INFO] Switching to pickle test file for OneHotRidgeModel baseline.")
-        
-        pkl_path = data_path.with_suffix(".pkl")  # e.g., ../../data/heldout-set-sequences.pkl
-        if not pkl_path.exists():
-            print_error(f"Expected pickle test file not found: {pkl_path}")
-            return False, f"Missing expected pickle test file: {pkl_path}"
-        print_success(f"Using pickle test file for OneHotRidgeModel: {pkl_path}")
-        data_path = pkl_path
-    
-    else:
-        data_path = data_path  # default CSV for all other baselines
     
     # Build command (use pixi run to activate baseline's environment)
     cmd = [
@@ -169,7 +156,7 @@ def test_baseline_predict(
         "--run-dir", str(run_dir),
         "--out-dir", str(out_dir)
     ]
-
+    
     try:
         result = subprocess.run(
             cmd,
@@ -194,10 +181,7 @@ def test_baseline_predict(
             return False, f"Failed to read predictions CSV: {str(e)}"
         
         # Check required columns
-        if baseline_name == 'onehot_ridge':
-            required_cols = ["antibody_name", "vh_protein_sequence", "vl_protein_sequence", "heavy_aligned_aho", "light_aligned_aho"]
-        else:
-            required_cols = ["antibody_name", "vh_protein_sequence", "vl_protein_sequence"]
+        required_cols = ["antibody_name", "vh_protein_sequence", "vl_protein_sequence"]
         missing_cols = [col for col in required_cols if col not in df_pred.columns]
         if missing_cols:
             return False, f"Missing required columns: {missing_cols}"
@@ -208,13 +192,10 @@ def test_baseline_predict(
             print_warning("No property predictions found (only sequence columns)")
         
         # Load input data to check row count
-        if not is_training_data and baseline_name == "onehot_ridge":
-            df_input = pd.read_pickle(data_path)
-        else:
-            df_input = pd.read_csv(data_path)
+        df_input = pd.read_csv(data_path)
         if len(df_pred) != len(df_input):
             return False, f"Row count mismatch: {len(df_pred)} predictions vs {len(df_input)} input samples"
-
+        
         return True, f"Generated predictions for {len(df_pred)} samples with {len(property_cols)} properties"
         
     except subprocess.TimeoutExpired:
