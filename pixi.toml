@@ -20,9 +20,10 @@ abdev-core = { path = "libs/abdev_core", editable = true }
 
 [tasks]
 # Main orchestration commands
-all = "python run_all_baselines.py"
-all-skip-train = "python run_all_baselines.py --skip-train"
-all-skip-eval = "python run_all_baselines.py --skip-eval"
+all = "python run_all_models.py"
+all-skip-train = "python run_all_models.py --skip-train"
+all-skip-eval = "python run_all_models.py --skip-eval"
+display-evals = "python run_all_models.py --display-only"
 
 [environments]
 default = []

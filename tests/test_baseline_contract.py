@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test script to validate all baselines satisfy the train/predict contract.
+"""Test script to validate all model satisfy the train/predict contract.
 
 This script:
 1. Discovers all baseline directories
@@ -51,35 +51,35 @@ def print_warning(message: str):
     print(f"{YELLOW}⚠ {message}{NC}")
 
 
-def discover_baselines(baselines_dir: Path) -> list[str]:
+def discover_model(model_dir: Path) -> list[str]:
     """Discover all baseline directories.
     
     Args:
-        baselines_dir: Path to baselines directory
+        model_dir: Path to model directory
         
     Returns:
         List of baseline names
     """
-    baselines = []
-    for item in baselines_dir.iterdir():
+    model = []
+    for item in model_dir.iterdir():
         if item.is_dir() and (item / "pixi.toml").exists():
-            baselines.append(item.name)
-    return sorted(baselines)
+            model.append(item.name)
+    return sorted(model)
 
 
-def test_baseline_train(baseline_name: str, baselines_dir: Path, data_path: Path, temp_dir: Path) -> tuple[bool, str]:
+def test_baseline_train(baseline_name: str, model_dir: Path, data_path: Path, temp_dir: Path) -> tuple[bool, str]:
     """Test the train command for a baseline.
     
     Args:
         baseline_name: Name of the baseline
-        baselines_dir: Path to baselines directory
+        model_dir: Path to model directory
         data_path: Path to training data
         temp_dir: Temporary directory for outputs
         
     Returns:
         Tuple of (success, message)
     """
-    baseline_dir = baselines_dir / baseline_name
+    baseline_dir = model_dir / baseline_name
     run_dir = temp_dir / "runs" / baseline_name
     
     print(f"  Training {baseline_name}...")
@@ -124,7 +124,7 @@ def test_baseline_train(baseline_name: str, baselines_dir: Path, data_path: Path
 
 def test_baseline_predict(
     baseline_name: str,
-    baselines_dir: Path,
+    model_dir: Path,
     data_path: Path,
     run_dir: Path,
     out_dir: Path,
@@ -134,7 +134,7 @@ def test_baseline_predict(
     
     Args:
         baseline_name: Name of the baseline
-        baselines_dir: Path to baselines directory
+        model_dir: Path to model directory
         data_path: Path to input data
         run_dir: Path to run directory with trained models
         out_dir: Directory for output predictions
@@ -143,7 +143,7 @@ def test_baseline_predict(
     Returns:
         Tuple of (success, message)
     """
-    baseline_dir = baselines_dir / baseline_name
+    baseline_dir = model_dir / baseline_name
     dataset_name = "training" if is_training_data else "heldout"
     
     print(f"  Predicting on {dataset_name} data...")
@@ -225,7 +225,7 @@ def test_baseline_predict(
 
 def test_baseline(
     baseline_name: str,
-    baselines_dir: Path,
+    model_dir: Path,
     data_dir: Path,
     temp_dir: Path,
     skip_train: bool = False
@@ -234,7 +234,7 @@ def test_baseline(
     
     Args:
         baseline_name: Name of the baseline
-        baselines_dir: Path to baselines directory
+        model_dir: Path to model directory
         data_dir: Path to data directory
         temp_dir: Temporary directory for outputs
         skip_train: If True, skip training step
@@ -264,7 +264,7 @@ def test_baseline(
     
     # Test 1: Train
     if not skip_train:
-        success, message = test_baseline_train(baseline_name, baselines_dir, train_data_path, temp_dir)
+        success, message = test_baseline_train(baseline_name, model_dir, train_data_path, temp_dir)
         results["train_passed"] = success
         results["train_message"] = message
         
@@ -280,7 +280,7 @@ def test_baseline(
     
     # Test 2: Predict on training data
     success, message = test_baseline_predict(
-        baseline_name, baselines_dir, train_data_path, run_dir, out_dir_train, is_training_data=True
+        baseline_name, model_dir, train_data_path, run_dir, out_dir_train, is_training_data=True
     )
     results["predict_train_passed"] = success
     results["predict_train_message"] = message
@@ -293,7 +293,7 @@ def test_baseline(
     
     # Test 3: Predict on heldout data
     success, message = test_baseline_predict(
-        baseline_name, baselines_dir, heldout_data_path, run_dir, out_dir_heldout, is_training_data=False
+        baseline_name, model_dir, heldout_data_path, run_dir, out_dir_heldout, is_training_data=False
     )
     results["predict_heldout_passed"] = success
     results["predict_heldout_message"] = message
@@ -314,7 +314,7 @@ def test_baseline(
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Test all baselines for train/predict contract compliance"
+        description="Test all model for train/predict contract compliance"
     )
     parser.add_argument(
         "--baseline",
@@ -327,10 +327,10 @@ def main():
         help="Skip training step (assumes models already trained)"
     )
     parser.add_argument(
-        "--baselines-dir",
+        "--model-dir",
         type=Path,
-        default=Path(__file__).parent.parent / "baselines",
-        help="Path to baselines directory"
+        default=Path(__file__).parent.parent / "model",
+        help="Path to model directory"
     )
     parser.add_argument(
         "--data-dir",
@@ -341,22 +341,22 @@ def main():
     args = parser.parse_args()
     
     # Validate paths
-    if not args.baselines_dir.exists():
-        print_error(f"Baselines directory not found: {args.baselines_dir}")
+    if not args.model_dir.exists():
+        print_error(f"Model directory not found: {args.model_dir}")
         sys.exit(1)
     
     if not args.data_dir.exists():
         print_error(f"Data directory not found: {args.data_dir}")
         sys.exit(1)
     
-    # Discover baselines
+    # Discover model
     if args.baseline:
-        baselines = [args.baseline]
+        model = [args.baseline]
     else:
-        baselines = discover_baselines(args.baselines_dir)
+        model = discover_model(args.model_dir)
     
-    print_section(f"Found {len(baselines)} baseline(s) to test")
-    for baseline in baselines:
+    print_section(f"Found {len(model)} baseline(s) to test")
+    for baseline in model:
         print(f"  - {baseline}")
     
     # Create temporary directory for outputs
@@ -366,10 +366,10 @@ def main():
         
         # Test each baseline
         all_results = []
-        for baseline in baselines:
+        for baseline in model:
             results = test_baseline(
                 baseline,
-                args.baselines_dir,
+                args.model_dir,
                 args.data_dir,
                 temp_path,
                 skip_train=args.skip_train
@@ -382,7 +382,7 @@ def main():
         passed = [r for r in all_results if r["overall_passed"]]
         failed = [r for r in all_results if not r["overall_passed"]]
         
-        print(f"Total baselines tested: {len(all_results)}")
+        print(f"Total model tested: {len(all_results)}")
         print_success(f"Passed: {len(passed)}/{len(all_results)}")
         
         if passed:

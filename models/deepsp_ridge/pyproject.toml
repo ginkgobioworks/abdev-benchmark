@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deepsp_ridge"
+version = "0.1.0"
+description = "DeepSP Ridge - Ridge regression on DeepSP spatial features"
+requires-python = ">=3.11"
+dependencies = [
+    "abdev-core",
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "scikit-learn>=1.3",
+    "typer>=0.9.0",
+    "biopython>=1.78",
+    "tensorflow>=2.11,<2.17",
+    "keras>=2.11,<3.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+

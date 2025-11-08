@@ -10,7 +10,7 @@ class FeatureLoader:
     
     Provides access to pre-computed features across all datasets as dictionary lookups by antibody_name.
     By default, loads and concatenates features from all available datasets (e.g., GDPa1, heldout_test).
-    Baselines can optionally use features without needing to know file paths or datasets.
+    Model can optionally use features without needing to know file paths or datasets.
     """
     
     def __init__(self, features_dir: Optional[Path] = None):

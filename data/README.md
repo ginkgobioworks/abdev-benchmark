@@ -60,7 +60,7 @@ Most features were computed externally (e.g., via Tamarind.bio) and imported int
 
 ## Usage
 
-Baselines should:
+Model should:
 1. Read ground truth from `GDPa1_v1.2_20250814.csv`
 2. Load features from `../features/processed_features/{dataset}/`
 3. Generate predictions for appropriate dataset splits
