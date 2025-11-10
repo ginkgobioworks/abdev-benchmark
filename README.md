@@ -120,6 +120,30 @@ You can customize behavior via config files in `configs/`:
 python run_all_models.py --config configs/custom.toml
 ```
 
+A subset of models have been evaluated on the heldout test set with the following results:
+
+**Spearman ρ (Heldout test set)**
+
+| Model               | AC-SINS_pH7.4 | HIC    | PR_CHO | Titer  | Tm2    |
+|---------------------|---------------|--------|--------|--------|--------|
+| ablang2_elastic_net | 0.220         | 0.356  | 0.159  | 0.283  | -0.095 |
+| esm2_tap_ridge      | 0.084         | 0.407  | 0.160  | -0.041 | 0.205  |
+| moe_baseline        | 0.103         | 0.495  | 0.081  | 0.110  | -0.140 |
+| esm2_tap_xgb        | 0.089         | 0.197  | 0.053  | 0.056  | 0.102  |
+| esm2_ridge          | 0.066         | 0.403  | 0.024  | 0.045  | -0.058 |
+| tap_linear          | 0.032         | 0.348  | 0.136  | 0.063  | -0.107 |
+| piggen              | 0.061         | 0.406  | 0.005  | -0.067 | -0.027 |
+| deepsp_ridge        | -0.028        | 0.404  | -0.042 | 0.129  | -0.111 |
+| esm2_tap_rf         | 0.068         | 0.339  | -0.003 | -0.092 | 0.012  |
+| onehot_ridge        | -0.114        | 0.273  | -0.157 | 0.010  | -0.115 |
+| random_predictor    | -0.029        | -0.191 | 0.065  | 0.131  | -0.277 |
+| tap_single_features | -0.161        | 0.050  | -0.074 | -0.020 | —      |
+| aggrescan3d         | —             | 0.535  | 0.006  | —      | —      |
+| antifold            | —             | —      | —      | 0.134  | -0.016 |
+| deepviscosity       | —             | —      | —      | —      | —      |
+| saprot_vh           | —             | —      | —      | —      | —      |
+
+
 ## Repository Structure
 
 ```
