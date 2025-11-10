@@ -105,10 +105,15 @@ metrics of the corresponding test folds.
 Options:
 ```bash
 pixi run all                    # Full workflow (train + predict + eval)
+pixi run fast-only              # A subset of models which train and eval quickly.
 pixi run all-skip-train         # Skip training (use existing models)
 pixi run all-skip-eval          # Skip evaluation step
 python run_all_models.py --help  # See all options
 ```
+
+> **Note:** Some models are compute heavy and have hyperparameter sweeps as part of their training process (e.g. `moe_baseline`). For experimentation, it may be advantageous to create a new config with the subset of models of interest.
+
+
 
 You can customize behavior via config files in `configs/`:
 ```bash
