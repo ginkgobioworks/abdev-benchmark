@@ -30,3 +30,5 @@ Thumbs.db
 model/**/outputs/
 .tmp_cv_splits/
 outputs/models/
+.tmp_cv
+.tmp_cv_train
