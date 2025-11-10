@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "saprot_vh_vl"
+version = "0.1.0"
+description = "Saprot_VH_VL baseline - protein language model predictions on VH and VL sequences and structures"
+requires-python = ">=3.11"
+dependencies = [
+    "abdev-core",
+    "pandas>=2.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
