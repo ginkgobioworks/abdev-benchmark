@@ -1,0 +1,34 @@
+# Configuration for running fast models only
+# Based on default.toml
+
+[data]
+train_file = "data/GDPa1_v1.2_20250814.csv"
+test_file = "data/heldout-set-sequences.csv"
+
+[cross_validation]
+num_folds = 5
+seed = 42
+fold_col = "hierarchical_cluster_IgG_isotype_stratified_fold"
+
+[paths]
+output_dir = "outputs"
+run_dir = "outputs/models"
+predictions_dir = "outputs/predictions"
+evaluation_dir = "outputs/evaluation"
+temp_dir = ".tmp_cv_splits"
+
+[model]
+model_dir = "models"
+# Only run fast models
+include = ["random_predictor", "deepviscosity", "antifold", "saprot_vh", "aggrescan3d", "tap_linear", "tap_single_features"]
+exclude = []
+
+[execution]
+skip_train = false
+skip_eval = false
+verbose = false
+
+[evaluation]
+cv_dataset_name = "GDPa1_cross_validation"
+per_fold_metrics = false
+
