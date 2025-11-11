@@ -31,6 +31,3 @@ verbose = false
 [evaluation]
 cv_dataset_name = "GDPa1_cross_validation"
 per_fold_metrics = false
-
-
-
