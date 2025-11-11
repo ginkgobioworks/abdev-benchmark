@@ -81,7 +81,7 @@ After running all models, you'll see a summary table like this:
 These results use the defined folds in the GDPa1 training set and present the 
 metrics of the corresponding test folds.
 
-**Spearman ρ (Test folds of training set, Average Fold)**
+**Spearman ρ (Cross-validation fold average)**
 
 | Model               | AC-SINS_pH7.4 | HIC   | PR_CHO | Titer | Tm2    |
 |---------------------|---------------|-------|--------|-------|--------|
