@@ -1,0 +1,15 @@
+spearman,top_10_recall,fold,dataset,assay,model,split
+0.2284596720959178,0.2,0,GDPa1_cross_validation,HIC,ssh2,test
+0.11986645424038968,0.0,1,GDPa1_cross_validation,HIC,ssh2,test
+0.38841384037569354,0.25,2,GDPa1_cross_validation,HIC,ssh2,test
+0.12264317371023191,0.0,3,GDPa1_cross_validation,HIC,ssh2,test
+0.0974564382781452,0.0,4,GDPa1_cross_validation,HIC,ssh2,test
+0.20865360330038288,0.125,aggregated,GDPa1_cross_validation,HIC,ssh2,test
+0.19136791574007564,0.09,average,GDPa1_cross_validation,HIC,ssh2,test
+0.22845967209591783,0.19047619047619047,0,GDPa1_cross_validation,HIC,ssh2,train
+0.11986645424038969,0.0,1,GDPa1_cross_validation,HIC,ssh2,train
+0.38841384037569365,0.3684210526315789,2,GDPa1_cross_validation,HIC,ssh2,train
+0.1226431737102319,0.058823529411764705,3,GDPa1_cross_validation,HIC,ssh2,train
+0.09745643827814521,0.0,4,GDPa1_cross_validation,HIC,ssh2,train
+0.20865360330038288,0.125,aggregated,GDPa1_cross_validation,HIC,ssh2,train
+0.19136791574007567,0.12354415450390684,average,GDPa1_cross_validation,HIC,ssh2,train
