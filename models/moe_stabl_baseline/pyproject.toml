@@ -1,0 +1,18 @@
+[project]
+name = "moe-stabl-baseline"
+version = "0.1.0"
+description = "Baseline model using MOE features and Stabl feature selection"
+requires-python = ">=3.9"
+dependencies = [
+  "numpy",
+  "pandas",
+  "scikit-learn",
+  "joblib",
+  "xgboost",
+  "tqdm",
+  "scipy"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
