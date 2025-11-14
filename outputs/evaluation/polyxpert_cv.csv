@@ -1,0 +1,15 @@
+spearman,top_10_recall,fold,dataset,assay,model,split
+0.28868446996744257,0.0,0,GDPa1_cross_validation,PR_CHO,polyxpert,test
+0.24730775442849698,0.25,1,GDPa1_cross_validation,PR_CHO,polyxpert,test
+0.2898471198503188,0.0,2,GDPa1_cross_validation,PR_CHO,polyxpert,test
+0.20812899293999612,0.0,3,GDPa1_cross_validation,PR_CHO,polyxpert,test
+0.2937486949862541,0.25,4,GDPa1_cross_validation,PR_CHO,polyxpert,test
+0.34753020661177336,0.21052631578947367,aggregated,GDPa1_cross_validation,PR_CHO,polyxpert,test
+0.2655434064345017,0.1,average,GDPa1_cross_validation,PR_CHO,polyxpert,test
+0.2886844699674426,0.1111111111111111,0,GDPa1_cross_validation,PR_CHO,polyxpert,train
+0.24730775442849695,0.25,1,GDPa1_cross_validation,PR_CHO,polyxpert,train
+0.2898471198503188,0.0,2,GDPa1_cross_validation,PR_CHO,polyxpert,train
+0.20812899293999604,0.0,3,GDPa1_cross_validation,PR_CHO,polyxpert,train
+0.2937486949862541,0.25,4,GDPa1_cross_validation,PR_CHO,polyxpert,train
+0.34753020661177336,0.05128205128205128,aggregated,GDPa1_cross_validation,PR_CHO,polyxpert,train
+0.2655434064345017,0.12222222222222223,average,GDPa1_cross_validation,PR_CHO,polyxpert,train

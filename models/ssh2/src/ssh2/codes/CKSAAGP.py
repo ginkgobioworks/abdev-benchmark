@@ -96,3 +96,5 @@ if __name__ == '__main__':
 	encodings = CKSAAGP(fastas, gap)
 	saveCode.savetsv(encodings, output)
 
+
+

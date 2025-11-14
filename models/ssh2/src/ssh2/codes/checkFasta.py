@@ -27,3 +27,5 @@ def minSequenceLengthWithNormalAA(fastas):
 			minLen = len(re.sub('-', '', i[1]))
 	return minLen
 
+
+

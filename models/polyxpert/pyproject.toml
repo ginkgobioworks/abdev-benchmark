@@ -3,15 +3,21 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ssh2"
+name = "polyxpert"
 version = "0.1.0"
-description = "SSH2 - CKSAAGP + SVM ensemble model for antibody hydrophobicity prediction"
+description = "PolyXpert - Fine-tuned ESM-2 model for antibody polyreactivity prediction"
 requires-python = ">=3.11"
 dependencies = [
     "abdev-core",
-    "pandas>=2.0",
-    "numpy>=1.24",
     "typer>=0.9.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24,<2.0",
+    "torch==1.13.1",
+    "tqdm==4.64.1",
+    "transformers==4.45.2",
+    "datasets==2.9.0",
+    "pyarrow~=12.0.0",
+    "sympy==1.14.0"
 ]
 
 [tool.setuptools.packages.find]
@@ -19,6 +25,4 @@ where = ["src"]
 
 [tool.setuptools.package-dir]
 "" = "src"
-
-
 

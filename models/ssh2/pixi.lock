@@ -1952,7 +1952,7 @@ packages:
 - pypi: ./
   name: ssh2
   version: 0.1.0
-  sha256: 464b5141ec86534e33cbe1e827fdd1946ef05da87ae7b75b3120e2114e9b14fa
+  sha256: dd71bbb053d49a0b4f56d766018b7037f6e06a6c346b340454009235be4f3545
   requires_dist:
   - abdev-core
   - pandas>=2.0

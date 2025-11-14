@@ -1,0 +1,35 @@
+[workspace]
+name = "polyxpert"
+version = "0.1.0"
+description = "PolyXpert - Fine-tuned ESM-2 model for antibody polyreactivity prediction"
+channels = ["conda-forge", "pytorch"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.11.*"
+typer = ">=0.9"
+
+[pypi-dependencies]
+abdev-core = { path = "../../libs/abdev_core", editable = true }
+polyxpert = { path = ".", editable = true }
+pandas = ">=2.0.0"
+numpy = ">=1.24,<2.0"
+torch = "==1.13.1"
+tqdm = "==4.64.1"
+transformers = "==4.45.2"
+datasets = "==2.9.0"
+pyarrow = "~=12.0.0"
+sympy = "==1.14.0"
+
+[environments]
+default = []
+dev = ["dev"]
+
+[feature.dev.dependencies]
+pytest = ">=7.0"
+ruff = ">=0.1"
+
+[feature.dev.tasks]
+lint = "ruff check src && ruff format --check src"
+test = "pytest tests -v"
+

@@ -23,3 +23,5 @@ def readFasta(file):
 		myFasta.append([name, sequence])
 	return myFasta
 
+
+

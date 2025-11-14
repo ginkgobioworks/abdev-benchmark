@@ -1,0 +1,15 @@
+spearman,top_10_recall,fold,dataset,assay,model,split
+0.4318547917012572,0.0,0,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,test
+0.3016942302915928,0.0,1,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,test
+0.4660585025252815,0.25,2,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,test
+0.32168618805615096,0.0,3,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,test
+0.4538701466786779,0.0,4,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,test
+0.43854363891172504,0.125,aggregated,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,test
+0.39503277185059205,0.05,average,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,test
+0.4318547917012572,0.09523809523809523,0,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,train
+0.30169423029159276,0.0,1,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,train
+0.4660585025252816,0.3684210526315789,2,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,train
+0.3216861880561509,0.0,3,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,train
+0.45387014667867803,0.0,4,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,train
+0.43854363891172493,0.125,aggregated,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,train
+0.39503277185059205,0.09273182957393483,average,GDPa1_cross_validation,AC-SINS_pH7.4,cisi2,train

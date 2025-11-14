@@ -18,3 +18,5 @@ def savetsv(encodings, file = 'encoding.tsv'):
 				f.write(str(float(i[len(i)-1])) + '\n')
 	return None
 
+
+
