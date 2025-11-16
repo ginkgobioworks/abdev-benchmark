@@ -81,38 +81,68 @@ After running all models, you'll see a summary table like this:
 These results use the defined folds in the GDPa1 training set and present the 
 metrics of the corresponding test folds.
 
-**Spearman ρ (Test folds of training set, Average Fold)**
+**Spearman ρ (Cross-validation fold average)**
 
-| Model               | AC-SINS_pH7.4 |   HIC  | PR_CHO | Titer |   Tm2  |
-|----------------------|---------------|--------|--------|--------|--------|
-| moe_baseline         | 0.464         | 0.685  | 0.451  | 0.215  | 0.118  |
-| esm2_tap_ridge       | 0.480         | 0.420  | 0.413  | 0.221  | 0.265  |
-| ablang2_elastic_net  | 0.509         | 0.461  | 0.362  | 0.356  | 0.101  |
-| esm2_tap_rf          | 0.339         | 0.310  | 0.327  | 0.223  | 0.303  |
-| esm2_ridge           | 0.420         | 0.416  | 0.420  | 0.180  | -0.098 |
-| deepsp_ridge         | 0.348         | 0.531  | 0.257  | 0.114  | 0.073  |
-| esm2_tap_xgb         | 0.304         | 0.262  | 0.256  | 0.147  | 0.328  |
-| piggen               | 0.388         | 0.346  | 0.424  | 0.238  | -0.119 |
-| tap_single_features  | 0.327         | 0.231  | 0.074  | 0.126  | —      |
-| tap_linear           | 0.294         | 0.222  | 0.136  | 0.113  | -0.115 |
-| aggrescan3d          | —             | 0.404  | 0.112  | —      | —      |
-| saprot_vh            | —             | —      | 0.289  | —      | 0.162  |
-| antifold             | —             | —      | —      | 0.194  | 0.084  |
-| deepviscosity        | —             | 0.176  | —      | —      | —      |
-| random_predictor     | -0.026        | 0.002  | -0.081 | 0.068  | -0.000 |
+| Model               | AC-SINS_pH7.4 | HIC   | PR_CHO | Titer | Tm2    |
+|---------------------|---------------|-------|--------|-------|--------|
+| esm2_tap_ridge      | 0.480         | 0.420 | 0.413  | 0.221 | 0.265  |
+| ablang2_elastic_net | 0.509         | 0.461 | 0.362  | 0.356 | 0.101  |
+| moe_baseline        | 0.424         | 0.656 | 0.353  | 0.184 | 0.107  |
+| esm2_tap_rf         | 0.339         | 0.310 | 0.327  | 0.223 | 0.303  |
+| esm2_ridge          | 0.420         | 0.416 | 0.420  | 0.180 | -0.098 |
+| deepsp_ridge        | 0.348         | 0.531 | 0.257  | 0.114 | 0.073  |
+| esm2_tap_xgb        | 0.304         | 0.262 | 0.256  | 0.147 | 0.328  |
+| piggen              | 0.388         | 0.346 | 0.424  | 0.238 | -0.119 |
+| onehot_ridge        | 0.230         | 0.233 | 0.204  | 0.193 | -0.006 |
+| tap_single_features | 0.327         | 0.231 | 0.074  | 0.126 | —      |
+| tap_linear          | 0.294         | 0.222 | 0.136  | 0.113 | -0.115 |
+| aggrescan3d         | —             | 0.404 | 0.112  | —     | —      |
+| saprot_vh           | —             | —     | 0.289  | —     | 0.162  |
+| antifold            | —             | —     | —      | 0.194 | 0.084  |
+| deepviscosity       | —             | 0.176 | —      | —     | —      |
+| random_predictor    | -0.026        | 0.002 | -0.081 | 0.068 | -0.000 |
 
 Options:
 ```bash
 pixi run all                    # Full workflow (train + predict + eval)
+pixi run fast-only              # A subset of models which train and eval quickly.
 pixi run all-skip-train         # Skip training (use existing models)
 pixi run all-skip-eval          # Skip evaluation step
 python run_all_models.py --help  # See all options
 ```
 
+> **Note:** Some models are compute heavy and have hyperparameter sweeps as part of their training process (e.g. `moe_baseline`). For experimentation, it may be advantageous to create a new config with the subset of models of interest.
+
+
+
 You can customize behavior via config files in `configs/`:
 ```bash
 python run_all_models.py --config configs/custom.toml
 ```
+
+A subset of models have been evaluated on the heldout test set with the following results:
+
+**Spearman ρ (Heldout test set)**
+
+| Model               | AC-SINS_pH7.4 | HIC    | PR_CHO | Titer  | Tm2    |
+|---------------------|---------------|--------|--------|--------|--------|
+| ablang2_elastic_net | 0.220         | 0.356  | 0.159  | 0.283  | -0.095 |
+| esm2_tap_ridge      | 0.084         | 0.407  | 0.160  | -0.041 | 0.205  |
+| moe_baseline        | 0.103         | 0.495  | 0.081  | 0.110  | -0.140 |
+| esm2_tap_xgb        | 0.089         | 0.197  | 0.053  | 0.056  | 0.102  |
+| esm2_ridge          | 0.066         | 0.403  | 0.024  | 0.045  | -0.058 |
+| tap_linear          | 0.032         | 0.348  | 0.136  | 0.063  | -0.107 |
+| piggen              | 0.061         | 0.406  | 0.005  | -0.067 | -0.027 |
+| deepsp_ridge        | -0.028        | 0.404  | -0.042 | 0.129  | -0.111 |
+| esm2_tap_rf         | 0.068         | 0.339  | -0.003 | -0.092 | 0.012  |
+| onehot_ridge        | -0.114        | 0.273  | -0.157 | 0.010  | -0.115 |
+| random_predictor    | -0.029        | -0.191 | 0.065  | 0.131  | -0.277 |
+| tap_single_features | -0.161        | 0.050  | -0.074 | -0.020 | —      |
+| aggrescan3d         | —             | 0.535  | 0.006  | —      | —      |
+| antifold            | —             | —      | —      | 0.134  | -0.016 |
+| deepviscosity       | —             | —      | —      | —      | —      |
+| saprot_vh           | —             | —      | —      | —      | —      |
+
 
 ## Repository Structure
 
