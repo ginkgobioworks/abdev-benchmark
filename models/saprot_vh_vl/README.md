@@ -10,6 +10,8 @@ This baseline uses locally computed SaProt embeddings(SaProt_35M_AF2) to generat
 
 The rationale behind this joint representation is same as that of the ESM2 case(no token contamination and learning from features independently).
 
+Note: At the time of writing, there were two choices to fetch structures from - MOE and ABB3. This implementation concerns itself only with the MOE structures
+
 ## Method
 
 ### 1. Separate Chain Embedding
@@ -18,12 +20,12 @@ For each antibody, we embed the heavy and light chains independently:
 
 **VH Embedding:**
 ```
-VH_pdb  → FoldSeek 3di Descriptors → Interleaved with VH_seq → SaProt Tokenizer → Last Hidden State → Mean Pool → vh_embedding
+Complexed .pdb files from MOE → Extract VH pdb  → FoldSeek 3di Descriptors → Interleaved with VH_seq → SaProt Tokenizer → Last Hidden State → Mean Pool → vh_embedding
 ```
 
 **VL Embedding:**
 ```
-VL_pdb  → FoldSeek 3di Descriptors → Interleaved with VL_seq → SaProt Tokenizer → Last Hidden State → Mean Pool → vl_embedding
+Complexed .pdb files from MOE → Extract VL pdb   → FoldSeek 3di Descriptors → Interleaved with VL_seq → SaProt Tokenizer → Last Hidden State → Mean Pool → vl_embedding
 ```
 ### 2. Feature Concatenation
 
@@ -41,14 +43,9 @@ For SaProt_35M_AF2, the embedding dimension is 480, so:
 
 ## Requirements
 
-- VH PDB structures is in `../../data/structures/AntiBodyBuilder3`
-  - `GDPa1/` and in the format of `{antibody_name}.csv`
-
-- VL PDB structures in `../../data/structures/MOE_structures`
-  - `GDPa1/` and in the format of `{antibody_name}.csv`
-
-
+- The Complexed PDB structures are in `../../data/structures/MOE_structures/GDPa1/` and in the format of `{antibody_name}.csv`
 - foldseek installed
+- BioPython
 
 Note: While SaProt embeddings can be calculated from the sequence and structure information, in the absence of structure information, it defaults to calculating embeddings with sequence information only.
 
@@ -84,23 +81,6 @@ pixi run all
 ```
 
 This automatically discovers and runs all models, including SaProt_VH_VL, with 5-fold cross-validation.
-
-## Results
-
-Mean Fold Spearman Values:
-AC-SINS_pH7.4 - 0.368 
-HIC - 0.393 
-PR_CHO - 0.428 
-Titer - 0.264 
-Tm2 - -0.071 
-
-Top 10% Recall:
-
-AC-SINS_pH7.4 - 0.100 
-HIC - 0.230 
-PR_CHO - 0.217 
-Titer - 0.290 
-Tm2 - 0.000 
 
 ## Citation
 
