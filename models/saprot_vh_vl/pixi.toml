@@ -12,6 +12,8 @@ pandas = ">=2.0"
 scikit-learn = ">=1.3"
 typer = ">=0.9"
 foldseek = "*"  
+biopython = ">=1.81"
+
 
 [pypi-dependencies]
 abdev-core = { path = "../../libs/abdev_core", editable = true }

@@ -43,9 +43,11 @@ For SaProt_35M_AF2, the embedding dimension is 480, so:
 
 ## Requirements
 
-- The Complexed PDB structures are in `../../data/structures/MOE_structures/GDPa1/` and in the format of `{antibody_name}.csv`
+- The Complexed(VH+VL) PDB structures for training are in `../../data/structures/MOE_structures/GDPa1/` and in the format of `{antibody_name}.csv`
+- The Complexed(VH+VL) PDB structures for the heldout data is in `../../data/structures/MOE_structures/heldout_test/` and in the format of `{antibody_name}.csv`
+- The Heavy chains are labelled by 'B' and the light chains are labelled by 'A'
 - foldseek installed
-- BioPython
+- BioPython installed
 
 Note: While SaProt embeddings can be calculated from the sequence and structure information, in the absence of structure information, it defaults to calculating embeddings with sequence information only.
 
