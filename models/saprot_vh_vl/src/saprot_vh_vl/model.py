@@ -196,8 +196,14 @@ class Saprot_VH_VL_Model(BaseModel):
         
         return embedding  # Return shape (480,)
     
-    def _generate_embeddings(self, antibody_names: list[str],vh_sequences: list[str], vl_sequences: list[str]
-        ) -> np.ndarray:
+    def _generate_embeddings(
+        self,
+        antibody_names: list[str],
+        vh_sequences: list[str],
+        vl_sequences: list[str],
+        *,
+        context: str = "unknown",
+    ) -> np.ndarray:
         """
         Generate concatenated VH+VL embeddings for all antibodies.
         Each antibody is processed individually(sequence + structure) to avoid padding token contamination.
@@ -207,6 +213,7 @@ class Saprot_VH_VL_Model(BaseModel):
             antibody_names: list of antibody names
             vh_sequences: list of variable heavy sequences
             vl_sequences: list of variable light sequences
+            context: string describing usage context, used to select structure roots
     
         Returns:
             embeddings: Numpy array of shape (n_sequences, 960)
@@ -216,9 +223,19 @@ class Saprot_VH_VL_Model(BaseModel):
 
         embeddings_list = []
 
+        # Select structure roots based on context:
+        # - GDPa1 train/CV data lives under .../GDPa1
+        # - heldout test structures live under .../heldout_test
+        if context == "predict_heldout":
+            vh_root = Path("../../data/structures/AntiBodyBuilder3/heldout_test")
+            vl_root = Path("../../data/structures/MOE_structures/heldout_test")
+        else:
+            vh_root = self.structure_dir_vh
+            vl_root = self.structure_dir_vl
+
         for _, (antibody_name, vh_seq, vl_seq) in enumerate(zip(antibody_names, vh_sequences, vl_sequences)):
-            vh_pdb = self.structure_dir_vh / f"{antibody_name}.pdb"
-            vl_pdb = self.structure_dir_vl / f"{antibody_name}.pdb"
+            vh_pdb = vh_root / f"{antibody_name}.pdb"
+            vl_pdb = vl_root / f"{antibody_name}.pdb"
 
             # Extract VH embedding (with structure if available)
             vh_embed = self.extract_saprot_embedding(vh_seq, vh_pdb) #if vh_pdb.exists() else None)
@@ -256,6 +273,7 @@ class Saprot_VH_VL_Model(BaseModel):
             df["antibody_name"].tolist(),
             df["vh_protein_sequence"].tolist(),
             df["vl_protein_sequence"].tolist(),
+            context="train",
         )
 
         # Train Ridge regression models for each property
@@ -314,11 +332,18 @@ class Saprot_VH_VL_Model(BaseModel):
         with open(models_path, "rb") as f:
             models = pickle.load(f)
 
+        # Heuristic: heldout test data has no assay columns like 'Titer'
+        if "Titer" in df.columns:
+            pred_context = "predict_train_or_cv"
+        else:
+            pred_context = "predict_heldout"
+
         # Generate embeddings for input data
         embeddings = self._generate_embeddings(
             df["antibody_name"].tolist(),
             df["vh_protein_sequence"].tolist(),
             df["vl_protein_sequence"].tolist(),
+            context=pred_context,
         )
 
         # Generate predictions for each property

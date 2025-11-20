@@ -41,14 +41,13 @@ For SaProt_35M_AF2, the embedding dimension is 480, so:
 
 ## Requirements
 
-- VH PDB structures is in `../../data/structures/AntiBodyBuilder3`
-  - `GDPa1/` and in the format of `{antibody_name}.csv`
+- VH PDB structures in `../../data/structures/AntiBodyBuilder3`
+  - `GDPa1/` for train/CV and `heldout_test/` for heldout predictions, files named `{antibody_name}.pdb`
 
 - VL PDB structures in `../../data/structures/MOE_structures`
-  - `GDPa1/` and in the format of `{antibody_name}.csv`
+  - `GDPa1/` for train/CV and `heldout_test/` for heldout predictions, files named `{antibody_name}.pdb`
 
-
-- foldseek installed
+- `foldseek` installed
 
 Note: While SaProt embeddings can be calculated from the sequence and structure information, in the absence of structure information, it defaults to calculating embeddings with sequence information only.
 
