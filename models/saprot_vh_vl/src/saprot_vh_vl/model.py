@@ -228,6 +228,8 @@ class Saprot_VH_VL_Model(BaseModel):
             combined_embedding = np.concatenate([vh_embed, vl_embed])
             embeddings_list.append(combined_embedding)
 
+            print("generating saprot embeddings", antibody_name)
+
         embeddings = np.stack(embeddings_list)  
 
         return embeddings
