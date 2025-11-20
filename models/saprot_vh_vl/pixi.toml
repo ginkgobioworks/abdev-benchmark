@@ -1,0 +1,35 @@
+[workspace]
+name = "saprot_vh_vl"
+version = "0.1.0"
+description = "Saprot_VH_VL baseline - protein language model predictions on VH and VL sequences and Structures"
+channels = ["conda-forge", "bioconda", "pytorch"]
+platforms = ["linux-64", "osx-64", "osx-arm64"]
+
+[dependencies]
+python = "3.11.*"
+numpy = ">=1.24"
+pandas = ">=2.0"
+scikit-learn = ">=1.3"
+typer = ">=0.9"
+foldseek = "*"  
+
+[pypi-dependencies]
+abdev-core = { path = "../../libs/abdev_core", editable = true }
+saprot_vh_vl = { path = ".", editable = true }
+transformers = "==4.23.0"
+torch = ">=2.0"
+accelerate = ">=1.3.0"
+safetensors = ">=0.4.2"
+
+[environments]
+default = []
+dev = ["dev"]
+
+[feature.dev.dependencies]
+pytest = ">=7.0"
+ruff = ">=0.1"
+
+[feature.dev.tasks]
+lint = "ruff check src && ruff format --check src"
+test = "pytest tests -v"
+
