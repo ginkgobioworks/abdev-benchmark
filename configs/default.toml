@@ -32,7 +32,7 @@ temp_dir = ".tmp_cv_splits"
 model_dir = "models"
 # Optional: specify model to run (empty = discover all)
 # include = ["tap_linear", "random_predictor"]
-include = ["saprot_vh"]
+include = []
 # Optional: specify model to exclude
 exclude = []
 
