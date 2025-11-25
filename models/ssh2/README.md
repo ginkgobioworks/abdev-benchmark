@@ -24,6 +24,7 @@ numpy = ">=1.18"
 ## Usage
 
 ```
+
 pixi run python -m ssh2 train --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./runs/my_run
 pixi run python -m ssh2 predict --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./runs/my_run --out-dir ./outputs
 
