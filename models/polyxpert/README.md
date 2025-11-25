@@ -50,7 +50,7 @@ pixi run python -m polyxpert train \
 # Predict on training data
 pixi run python -m polyxpert predict \
   --data ../../data/GDPa1_v1.2_20250814.csv \
-  --run-dir ./runs/my_run
+  --run-dir ./runs/my_run  --out-dir ./output
 ```
 
 ### Full Workflow via Orchestrator
@@ -96,6 +96,20 @@ The model outputs a PR_CHO (polyreactivity) score ranging from 0 to 1. Higher sc
 
 - **AUC**: 0.9672 on held-out test set
 - **Input requirements**: VH and VL Fv sequences only
+
+## Important Note on the PolyXpert Model
+
+The **PolyXpert** model provides valuable predictions for antibody polyreactivity, but its inclusion in this benchmark requires specific contextual interpretation regarding comparability.
+
+- **Training Data Discrepancy**: PolyXpert was trained on polyreactivity labels derived from **four different reagents**. In contrast, this benchmark evaluates predictions against a single, specific **PR_CHO** value. This difference in target variables is a critical factor when comparing its performance directly against models trained specifically on the PR_CHO metric.
+
+- **Inherent Challenge**: As discussed in our accompanying paper (https://doi.org/10.1016/j.jpha.2025.101448), achieving consistent polyreactivity predictions across diverse antibody types and assay reagents remains a significant challenge in the field.
+
+- **Interpretation Guidance**:
+    - **Technical Suitability**: The model is technically suitable for inclusion and provides a robust sequence-based prediction of polyreactivity risk.
+    - **Contextual Comparison**: However, its performance scores (e.g., Spearman ρ) in the benchmark leaderboard should be interpreted with the understanding that it was not optimized specifically for the PR_CHO endpoint. Direct, quantitative comparisons with models trained end-to-end on the benchmark's PR_CHO data may not fully reflect its utility for predicting general polyreactivity.
+
+In summary, while PolyXpert is a powerful tool for predicting antibody polyreactivity, its ranking relative to other models on the PR_CHO metric should be contextualized within these differences in training objectives and the inherent challenges of the prediction task.  
 
 ## Reference
 
