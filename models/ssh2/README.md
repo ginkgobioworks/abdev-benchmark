@@ -24,42 +24,27 @@ numpy = ">=1.18"
 ## Usage
 
 ```
-git clone https://github.com/zzyywww/ssh2.git
-cd ssh2
-chmod 777 -R ./trained
+pixi run python -m ssh2 train --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./runs/my_run
+pixi run python -m ssh2 predict --data ../../data/GDPa1_v1.2_20250814.csv --run-dir ./runs/my_run --out-dir ./outputs
+
 ```
-```
-import sys
-import pandas as pd
-from pathlib import Path
-import os
-import model
-
-SSH2Model = model.SSH2Model()
-
-
-test_data = pd.DataFrame({
-        'antibody_name': ['test_ab1', 'test_ab2'],
-        'vh_protein_sequence': ['QVKLQESGAELARPGASVKLSCKASGYTFTNYWMQWVKQRPGQGLDWIGAIYPGDGNTRYTHKFKGKATLTADKSSSTAYMQLSSLASEDSGVYYCARGEGNYAWFAYWGQGTTVTVSS', 
-                                'QVQLQQSGGELAKPGASVKVSCKASGYTFSSFWMHWVRQAPGQGLEWIGYINPRSGYTEYNEIFRDKATMTTDTSTSTAYMELSSLRSEDTAVYYCASFLGRGAMDYWGQGTTVTVSS'],
-        'vl_protein_sequence': ['DIELTQSPASLSASVGETVTITCQASENIYSYLAWHQQKQGKSPQLLVYNAKTLAGGVSSRFSGSGSGTHFSLKIKSLQPEDFGIYYCQHHYGILPTFGGGTKLEIK', 
-                                'DIQMTQSPSSLSASVGDRVTITCRASQDISNYLAWYQQKPGKAPKLLIYYTSKIHSGVPSRFSGSGSGTDYTFTISSLQPEDIATYYCQQGNTFPYTFGQGTKVEIK']
-    })
-	
-	
-run_dir = Path("./test_output")
-SSH2Model.train(test_data, run_dir, seed=42)
-
-result = SSH2Model.predict(test_data, run_dir)
-```
-
-or Get started with the SSH2 model by running the example provided in example.ipynb.
-
 
 ### outputs
 
-The model outputs a hydrophobicity score ranging from 0 to 1 and a predicted label with a default threshold of 0.5.
-Scores above 0.5 indicate high hydrophobicity (1), while scores below 0.5 indicate low hydrophobicity (0).
+The model outputs a hydrophobicity score ranging from 0 to 1.
+Scores above 0.5(default) indicate high hydrophobicity, while scores below 0.5 indicate low hydrophobicity.
+
+
+## Important Note on the SSH2 Model
+
+The **SSH2** model included in this benchmark was originally developed for a *classification task* (distinguishing between "good" and "poor" developability profiles), not for direct *regression* (predicting continuous property values).
+
+- **Model Output**: The model outputs a probability score (ranging from 0 to 1) representing the likelihood of a sequence belonging to the "good" developability class.
+- **Benchmark Interpretation**: Within the context of this benchmark, this probability score is treated as a **relative metric** for comparison across antibodies in the test set. A higher score indicates a predicted better developability profile.
+- **Caution in Comparison**: It is important to be aware that this probability score is **not directly equivalent** to the predicted values from regression-based models (e.g., Ridge, XGBoost) for properties like HIC or Titer. The scores should be interpreted as ranks for relative comparison rather than absolute property values.
+
+**In summary**: While the SSH2 model's predictions are useful for ranking antibodies by their relative developability potential, direct numerical comparison of its output scores against the raw value predictions from other models in the benchmark may not be appropriate. 
+
 
 ## Reference
 
