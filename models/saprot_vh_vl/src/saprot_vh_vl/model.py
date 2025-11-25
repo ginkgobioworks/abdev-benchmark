@@ -11,7 +11,7 @@ from sklearn.linear_model import Ridge
 import subprocess
 import os
 import time
-from Bio.PDB import PDBParser, PDBIO, Select
+from Bio.PDB import PDBParser, PDBIO, Select # Needed to split Heavy and Light chains from PDBs
 import tempfile
 
 class Saprot_VH_VL_Model(BaseModel):
@@ -40,8 +40,9 @@ class Saprot_VH_VL_Model(BaseModel):
         """Lazy initialize the transformer model and tokenizer."""
         if self.model is not None:
             return
-        
-        # Detect device
+
+        #Adding PyTorch Optimization for Apple Silicon
+        device = ""
         if torch.cuda.is_available():
             device = "cuda"
         elif torch.backends.mps.is_available():
@@ -137,40 +138,58 @@ class Saprot_VH_VL_Model(BaseModel):
                     os.remove(tmp_save_path + ".dbtype")
             except:
                 pass
-            
-            # Interleave
+        
+            # Interleave amino acids with structure tokens (lowercase)
+            # SaProt format: Aa Bb Cc where A,B,C = amino acids, a,b,c = structure tokens
             structure_aware_seq = ''.join(
                 f"{aa}{st.lower()}" for aa, st in zip(aa_seq, struc_seq)
             )
-            
+        
+            # Validate length
             if len(aa_seq) != len(sequence):
-                print(f"Warning: Length mismatch - using sequence-only mode")
+                print(f"Warning: Length mismatch - PDB has {len(aa_seq)} residues, "
+                      f"sequence has {len(sequence)}. Using sequence-only mode.")
                 return sequence
-            
+        
             return structure_aware_seq
-            
+        
         except Exception as e:
             print(f"Warning: Structure encoding failed for {pdb_path}: {e}")
-            return sequence
+            print("Falling back to sequence-only mode")
+            return sequence  # Fallback: use sequence without structure
 
+       
     def extract_saprot_embedding(self, sequence: str, pdb_path=None) -> np.ndarray:
-        """Extract SaProt embedding from sequence (with optional structure)."""
+        """
+        Extract SaProt embedding from sequence (with optional structure).
+    
+        Args:
+            sequence: Amino acid sequence
+            pdb_path: Optional path to PDB file for structure-aware encoding
+    
+        Returns:
+            embedding: Numpy array of shape (480,)
+        """
+        # Get structure-aware sequence if PDB provided
         if pdb_path.exists():
             input_seq = self.get_structure_aware_seq(sequence, pdb_path)
         else:
-            input_seq = sequence
-        
+            input_seq = sequence  # Sequence-only mode
+    
+        # Tokenize
         inputs = self.tokenizer(
+            #input_seq,
             str(input_seq),
             return_tensors="pt",
-            padding=False,
+            padding=False,  # Single sequence, no padding needed
             truncation=True,
             max_length=1024
         )
-        
+    
         input_ids = inputs["input_ids"].to(self.device)
         attention_mask = inputs["attention_mask"].to(self.device)
-        
+    
+        # Extract embeddings with output_hidden_states
         with torch.no_grad():
             outputs = self.model(
                 input_ids=input_ids,
@@ -178,7 +197,7 @@ class Saprot_VH_VL_Model(BaseModel):
                 output_hidden_states=True
             )
         
-        hidden_states = outputs.hidden_states[-1]
+            hidden_states = outputs.hidden_states[-1]
         mask_expanded = attention_mask.unsqueeze(-1).float()
         sum_embeddings = torch.sum(hidden_states * mask_expanded, dim=1)
         sum_mask = torch.sum(mask_expanded, dim=1)
@@ -270,33 +289,48 @@ class Saprot_VH_VL_Model(BaseModel):
         with open(models_path, "wb") as f:
             pickle.dump(models, f)
 
-        #please un-comment, if you would like to save embeddings -note: each CV generates its own embeddings which can be confusing
-        #embeddings_path = run_dir / "embeddings.npy"
-        #np.save(embeddings_path, embeddings)
+        embeddings_path = run_dir / "embeddings.npy"
+        np.save(embeddings_path, embeddings)
+
+
 
     def predict(self, df: pd.DataFrame, run_dir: Path) -> pd.DataFrame:
-        """Generate predictions for all samples using trained models."""
+        """Generate predictions for all samples using trained models.
+        
+        Args:
+            df: Input dataframe with VH/VL sequences
+            run_dir: Directory containing trained models
+            
+        Returns:
+            DataFrame with predictions for each property
+        """
+        # Load trained models
+
         self._initialize_model()
         
         models_path = run_dir / "models.pkl"
         if not models_path.exists():
             raise FileNotFoundError(f"Models not found: {models_path}")
-        
+
         with open(models_path, "rb") as f:
             models = pickle.load(f)
-        
+
+        #check if its heldout data or not
+        if len(df) == 80: #Hardcoded solution, not ideal, best would be to modify abdev-core functionality
+            structure_dir_val=self.structure_dir_heldout
+        else:
+            structure_dir_val=self.structure_dir_train
+
+        # Generate embeddings for input data
         embeddings = self._generate_embeddings(
             df["antibody_name"].tolist(),
             df["vh_protein_sequence"].tolist(),
             df["vl_protein_sequence"].tolist(),
-            structure_dir=self.structure_dir_heldout 
+            structure_dir=structure_dir_val
         )
         
         df_output = df[["antibody_name", "vh_protein_sequence", "vl_protein_sequence"]].copy()
-        
-        #embeddings_path = run_dir / "heldout_embeddings.npy"
-        #np.save(embeddings_path, embeddings)
-        
+
         for property_name, model in models.items():
             predictions = model.predict(embeddings)
             df_output[property_name] = predictions

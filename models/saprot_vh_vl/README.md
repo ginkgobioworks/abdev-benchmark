@@ -51,6 +51,8 @@ For SaProt_35M_AF2, the embedding dimension is 480, so:
 
 Note: While SaProt embeddings can be calculated from the sequence and structure information, in the absence of structure information, it defaults to calculating embeddings with sequence information only.
 
+Also Note: Current implementation works around abdev-core via hard-coding the size of heldout data. This is not good practice, and is only a temporary fix
+
 ### Train
 
 From the repository root:
